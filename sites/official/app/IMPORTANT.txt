@@ -1,0 +1,1 @@
+The .AppImage was removed from the directory because it was over 100mb i.e. the file size limit. you can find it under the Release section and can drop here if you want to try this website
