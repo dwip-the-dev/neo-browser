@@ -217,22 +217,6 @@ async function fetchGlobalServerURL() {
     }
 }
 
-// ---------------- Normalize URLs ----------------
-async function normalizeUrl(url) {
-    if (!url) return null;
-
-    // Already full URL
-    if (/^https?:\/\//i.test(url)) return url;
-
-    // Remove any None/ garbage
-    url = url.replace(/^None\//, '');
-
-    if (!GLOBAL_SERVER_URL) await fetchGlobalServerURL();
-    if (!GLOBAL_SERVER_URL) return null;
-
-    return `${GLOBAL_SERVER_URL}${url.startsWith('/') ? '' : '/'}${url}`;
-}
-
 // ---------------- Server status ----------------
 async function checkServerStatus() {
     if (!GLOBAL_SERVER_URL) await fetchGlobalServerURL();
@@ -255,18 +239,75 @@ async function checkServerStatus() {
     }
 }
 
+// ---------------- Fixed Normalize URLs function ----------------
+async function normalizeUrl(url) {
+    if (!url) return null;
+    
+    logDebug(`Normalizing URL: ${url}`);
+    
+    // If it's already a full URL, return it as is
+    if (/^https?:\/\//i.test(url)) return url;
+    
+    // Remove any None/ garbage from the beginning
+    url = url.replace(/^None\//, '');
+    
+    if (!GLOBAL_SERVER_URL) await fetchGlobalServerURL();
+    if (!GLOBAL_SERVER_URL) return null;
+    
+    // For .neo domains, ensure they're in the /site/ directory
+    if (url.includes('.neo')) {
+        // Remove any leading slash first
+        url = url.replace(/^\//, '');
+        
+        // Check if it already starts with site/
+        if (!url.startsWith('site/')) {
+            url = 'site/' + url;
+        }
+    }
+    
+    // Ensure the URL starts with a slash if it doesn't already
+    if (!url.startsWith('/')) {
+        url = '/' + url;
+    }
+    
+    // Construct the full URL
+    const fullUrl = `${GLOBAL_SERVER_URL}${url}`;
+    logDebug(`Normalized to: ${fullUrl}`);
+    return fullUrl;
+}
+
 // ---------------- Search handling ----------------
 searchBar.addEventListener('keypress', async (e) => {
     if (e.key !== 'Enter') return;
     const query = searchBar.value.trim();
     if (!query) return;
 
+    // Check if it's a full URL
     if (/^https?:\/\//i.test(query)) {
         logDebug(`Opening external site: ${query}`);
         ipcRenderer.send('open-external-browser', query);
         return;
     }
 
+    // Check if it's a .neo domain that should be normalized
+    if (query.includes('.neo') || query.startsWith('None/')) {
+        logDebug(`Detected .neo domain or None/ prefix: ${query}`);
+        resultsList.style.display = 'none';
+        webviewContainer.style.display = 'none';
+        overlay.style.display = 'none';
+        welcome.innerHTML = `<div class="loading"><div class="spinner"></div><div>Loading ${query}...</div></div>`;
+        
+        const normalizedUrl = await normalizeUrl(query);
+        if (normalizedUrl) {
+            await loadUrl(normalizedUrl);
+        } else {
+            overlay.innerHTML = 'Failed to normalize URL';
+            overlay.style.display = 'block';
+        }
+        return;
+    }
+
+    // Otherwise, perform a search
     resultsList.style.display = 'none';
     webviewContainer.style.display = 'none';
     overlay.style.display = 'none';
@@ -283,8 +324,17 @@ async function searchGlobal(query) {
         const res = await fetch(`${GLOBAL_SERVER_URL}/search?query=${encodeURIComponent(query)}`, { cache: "no-store" });
         const data = await res.json();
 
-        if (data.url) await loadUrl(data.url);
-        else displayResults(data.results || []);
+        if (data.url) {
+            const normalizedUrl = await normalizeUrl(data.url);
+            if (normalizedUrl) {
+                await loadUrl(normalizedUrl);
+            } else {
+                overlay.innerHTML = 'Failed to normalize URL from search results';
+                overlay.style.display = 'block';
+            }
+        } else {
+            displayResults(data.results || []);
+        }
     } catch (err) {
         logDebug(`Search error: ${err}`);
         overlay.innerHTML = `Search error: ${err}`;
@@ -309,6 +359,8 @@ function displayResults(results) {
         const li = document.createElement('li');
         li.textContent = `${name} — ${domain}`;
         li.dataset.domain = domain;
+        
+        // Store the original URL as-is
         li.dataset.url = url;
         resultsList.appendChild(li);
     });
@@ -323,6 +375,7 @@ resultsList.addEventListener('click', async (e) => {
     let url = e.target.dataset.url;
     const domain = e.target.dataset.domain;
 
+    // Normalize the URL before loading
     url = await normalizeUrl(url);
 
     resultsList.style.display = 'none';
@@ -335,28 +388,30 @@ resultsList.addEventListener('click', async (e) => {
 
 // ---------------- Load URL ----------------
 async function loadUrl(url) {
-    const fixedUrl = await normalizeUrl(url);
-    if (!fixedUrl) {
+    // URL should already be normalized at this point
+    if (!url) {
         overlay.innerHTML = 'Invalid URL';
         overlay.style.display = 'block';
         return;
     }
 
-    logDebug(`Loading URL: ${fixedUrl} (original: ${url})`);
+    logDebug(`Loading URL: ${url}`);
 
     resultsList.style.display = 'none';
     welcome.style.display = 'none';
     webviewContainer.style.display = 'block';
     overlay.style.display = 'none';
-    webview.src = fixedUrl;
-
-    webview.addEventListener('did-start-loading', () => logDebug('Webview started loading'));
-    webview.addEventListener('did-finish-load', () => logDebug('Webview finished loading'));
-    webview.addEventListener('did-fail-load', (event) => {
-        logDebug(`Webview failed load: ${event.errorDescription} (URL: ${fixedUrl})`);
-        overlay.innerHTML = `Failed to load content: ${event.errorDescription}`;
-        overlay.style.display = 'block';
-    });
+    
+    // Clear any previous error
+    overlay.style.display = 'none';
+    
+    // Reset webview and load the URL
+    webview.src = 'about:blank';
+    
+    // Add a small delay to ensure webview is reset
+    setTimeout(() => {
+        webview.src = url;
+    }, 50);
 }
 
 // ---------------- External tab ----------------
@@ -372,6 +427,5 @@ window.addEventListener("load", async () => {
     logDebug("Window fully initialized");
 });
 </script>
-
 </body>
 </html>
