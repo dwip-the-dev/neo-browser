@@ -1,4 +1,5 @@
 # 🌐 NeoBrowser
+![NeoBrowser Icon](icon.jpg)
 
 A **fully decentralized, privacy-first web browser** built on Electron. Lightweight, sandboxed, and leaves zero traces - no accounts, no browsing history, no trackers, and no ads.
 
