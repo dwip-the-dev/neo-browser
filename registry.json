@@ -1,0 +1,182 @@
+{
+  "example.neo": {
+    "name": "Example Site",
+    "path": "sites/testing/example/index.html"
+  },
+  "test.neo": {
+    "name": "Test Site",
+    "path": "sites/testing/test/index.html"
+  },
+  "onlinetest.neo": {
+    "name": "Test Site",
+    "path": "sites/testing/online/index.html"
+  },
+  "video.neo": {
+    "name": "Test Site",
+    "path": "sites/testing/video/index.html"
+  },
+  "audio.neo": {
+    "name": "Test Site",
+    "path": "sites/testing/audio/index.html"
+  },
+  "allsim.neo": {
+    "name": "Test Site",
+    "path": "sites/testing/siml-ad-vid/index.html"
+  },
+  "powertest.neo": {
+    "name": "power test",
+    "path": "sites/testing/power_test/index.html"
+  },
+   "home.neo": {
+    "name": "home",
+    "path": "sites/official/home/index.html"
+  },
+  "contact.neo": {
+    "name": "contact",
+    "path": "sites/official/contact/index.html"
+  },
+  "pricing.neo": {
+    "name": "pricing",
+    "path": "sites/official/pricing/index.html"
+  },
+  "app.neo": {
+    "name": "Download NeoBrowser",
+    "path": "sites/official/app/index.html"
+  },
+  "update.neo": {
+    "name": "update",
+    "path": "sites/official/update/index.html"
+  },
+  "privacy.neo": {
+    "name": "privacy",
+    "path": "sites/official/privacy/index.html"
+  },
+  "about.neo": {
+    "name": "about",
+    "path": "sites/official/about/index.html"
+  },
+  "download-test.neo": {
+    "name": "test site",
+    "path": "sites/testing/download/index.html"
+  },
+  "2048.neo": {
+    "name": "2048 Game",
+    "path": "sites/sites/2048/index.html"
+  },
+  "archery.neo": {
+    "name": "Archery Game",
+    "path": "sites/sites/archery/index.html"
+  },
+  "breakout.neo": {
+    "name": "Breakout",
+    "path": "sites/sites/breakout/index.html"
+  },
+  "candy-crush.neo": {
+    "name": "Candy Crush",
+    "path": "sites/sites/candy-crush/index.html"
+  },
+  "connect-four.neo": {
+    "name": "Connect Four",
+    "path": "sites/sites/connect-four/index.html"
+  },
+  "crossy-road.neo": {
+    "name": "Crossy Road",
+    "path": "sites/sites/crossy-road/index.html"
+  },
+  "dice-roll.neo": {
+    "name": "Dice Roll",
+    "path": "sites/sites/dice-roll/index.html"
+  },
+  "emoji-catch.neo": {
+    "name": "Emoji Catch",
+    "path": "sites/sites/emoji-catch/index.html"
+  },
+  "flappy-bird.neo": {
+    "name": "Flappy Bird",
+    "path": "sites/sites/flappy-bird/index.html"
+  },
+  "fruit-slicer.neo": {
+    "name": "Fruit Slicer",
+    "path": "sites/sites/fruit-slicer/index.html"
+  },
+  "hangman.neo": {
+    "name": "Hangman",
+    "path": "sites/sites/hangman/index.html"
+  },
+  "insect-catch.neo": {
+    "name": "Insect Catch",
+    "path": "sites/sites/insect-catch/index.html"
+  },
+  "keyboard-hero.neo": {
+    "name": "Keyboard Hero",
+    "path": "sites/sites/keyboard-hero/index.html"
+  },
+  "maze.neo": {
+    "name": "Maze Game",
+    "path": "sites/sites/maze/index.html"
+  },
+  "memory-card.neo": {
+    "name": "Memory Card",
+    "path": "sites/sites/memory-card/index.html"
+  },
+  "menja.neo": {
+    "name": "Menja",
+    "path": "sites/sites/menja/index.html"
+  },
+  "minesweeper.neo": {
+    "name": "Minesweeper",
+    "path": "sites/sites/minesweeper/index.html"
+  },
+  "ping-pong.neo": {
+    "name": "Ping Pong",
+    "path": "sites/sites/ping-pong/index.html"
+  },
+  "quiz-game.neo": {
+    "name": "Quiz Game",
+    "path": "sites/sites/quiz-game/index.html"
+  },
+  "rock-paper-scissor.neo": {
+    "name": "Rock Paper Scissors",
+    "path": "sites/sites/rock-paper-scissor/index.html"
+  },
+  "shape-clicker.neo": {
+    "name": "Shape Clicker",
+    "path": "sites/sites/shape-clicker/index.html"
+  },
+  "simon-says.neo": {
+    "name": "Simon Says",
+    "path": "sites/sites/simon-says/index.html"
+  },
+  "snake-game.neo": {
+    "name": "Snake Game",
+    "path": "sites/sites/snake-game/index.html"
+  },
+  "speak-number-guess.neo": {
+    "name": "Speak No Guess",
+    "path": "sites/sites/speak-no-guess/index.html"
+  },
+  "tetris.neo": {
+    "name": "Tetris",
+    "path": "sites/sites/tetris/index.html"
+  },
+  "the-cube.neo": {
+    "name": "The Cube",
+    "path": "sites/sites/the-cube/index.html"
+  },
+  "tic-tac-toe.neo": {
+    "name": "Tic Tac Toe",
+    "path": "sites/sites/tic-tac-toe/index.html"
+  },
+  "tower-block.neo": {
+    "name": "Tower Block",
+    "path": "sites/sites/tower-block/index.html"
+  },
+  "typing-game.neo": {
+    "name": "Typing Game",
+    "path": "sites/sites/typing-game/index.html"
+  },
+  "whack-a-mole.neo": {
+    "name": "Whack A Mole",
+    "path": "sites/sites/whack-a-mole/index.html"
+  }
+}

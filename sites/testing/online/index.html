@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeoBrowser External Test</title>
+<style>
+    body { font-family: Arial, sans-serif; background: #0b0b0b; color: #fff; text-align: center; padding: 50px; }
+    input, button { padding: 10px; font-size: 16px; border-radius: 5px; margin: 5px; }
+    iframe { width: 90%; height: 500px; border: 2px solid #6200ea; margin-top: 20px; border-radius: 10px; }
+</style>
+</head>
+<body>
+<h1>NeoBrowser External URL Test</h1>
+<p>Enter any URL to test if NeoBrowser can fetch external sites:</p>
+<input type="text" id="urlInput" placeholder="https://google.com" />
+<button id="loadBtn">Load Site</button>
+
+<iframe id="webviewFrame" src=""></iframe>
+
+<script>
+const loadBtn = document.getElementById('loadBtn');
+const urlInput = document.getElementById('urlInput');
+const webviewFrame = document.getElementById('webviewFrame');
+
+loadBtn.addEventListener('click', async () => {
+    let url = urlInput.value.trim();
+    if (!url) return alert("Enter a URL!");
+
+    // Call Flask /external endpoint
+    try {
+        const response = await fetch(`http://127.0.0.1:5000/external?url=${encodeURIComponent(url)}`);
+        const data = await response.json();
+        if (data.url) {
+            webviewFrame.src = data.url; // Load into iframe
+        } else {
+            alert("Server returned no URL");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Error fetching URL from server");
+    }
+});
+</script>
+</body>
+</html>

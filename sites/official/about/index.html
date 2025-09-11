@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoBrowser - Lightweight Local Web Browser</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0b0b0b, #1a0033);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #fff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            padding: 3rem 1rem;
+            background: rgba(10, 10, 10, 0.8);
+            border-radius: 0 0 20px 20px;
+            margin-bottom: 3rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(90deg, #6200ea, #00b0ff, #00e5ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 2s infinite alternate;
+        }
+        
+        h2 {
+            font-size: 2.5rem;
+            margin: 2rem 0;
+            color: #00e5ff;
+        }
+        
+        h3 {
+            font-size: 1.8rem;
+            margin: 1.5rem 0;
+            color: #00b0ff;
+        }
+        
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            color: #ddd;
+        }
+        
+        .tagline {
+            font-size: 1.5rem;
+            color: #aaa;
+            margin-bottom: 2rem;
+        }
+        
+        .highlight {
+            color: #ff00cc;
+            font-weight: bold;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        
+        .feature-card {
+            background: rgba(26, 26, 26, 0.8);
+            padding: 2rem;
+            border-radius: 10px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(98, 0, 234, 0.4);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #6200ea;
+        }
+        
+        .usage-section {
+            background: rgba(10, 10, 10, 0.8);
+            padding: 3rem;
+            border-radius: 20px;
+            margin: 3rem 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .code-block {
+            background: #1a1a1a;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            font-family: monospace;
+            color: #00ff99;
+            border-left: 4px solid #6200ea;
+        }
+        
+        .future-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .future-feature {
+            background: rgba(98, 0, 234, 0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            flex: 1 0 200px;
+            border: 1px solid #6200ea;
+        }
+        
+        .fun-section {
+            text-align: center;
+            padding: 3rem;
+            margin: 3rem 0;
+            background: rgba(255, 0, 204, 0.1);
+            border-radius: 20px;
+            border: 1px solid #ff00cc;
+        }
+        
+        .fun-text {
+            font-size: 2rem;
+            color: #ff00cc;
+            margin-bottom: 2rem;
+            animation: pulse 1.5s infinite;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            background: rgba(10, 10, 10, 0.8);
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px #6200ea, 0 0 20px #6200ea, 0 0 30px #6200ea;
+            }
+            to {
+                text-shadow: 0 0 20px #00b0ff, 0 0 30px #00b0ff, 0 0 40px #00b0ff;
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.8;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 3rem;
+            }
+            
+            h2 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>NEOBROWSER</h1>
+            <p class="tagline">A custom lightweight local web browser built with Python, PyWebView and Tkinter</p>
+            <p>Explore .neo domains and fetch:// URLs with a fast, responsive, and modular browsing experience</p>
+        </header>
+        
+        <section>
+            <h2>What is NeoBrowser?</h2>
+            <p>NeoBrowser is a custom lightweight local web browser built in Python using PyWebView and Tkinter, designed to explore <span class="highlight">.neo domains</span> and <span class="highlight">fetch:// URLs</span> stored in a local registry.</p>
+            <p>It combines a native GUI interface with an embedded browser engine, providing a fast, responsive, and modular browsing experience without relying on heavy browsers.</p>
+        </section>
+        
+        <section>
+            <h2>Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔗</div>
+                    <h3>Custom URL Scheme Support</h3>
+                    <p>Supports fetch:// URLs and .neo domains. Resolves them to local HTML files based on a registry JSON file.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Integrated Search</h3>
+                    <p>Search through registered sites with keywords. Live results appear in a dynamic sidebar/list. Clicking a result opens it directly in the embedded browser.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">💻</div>
+                    <h3>Responsive UI</h3>
+                    <p>Sticky search bar always visible for repeated queries. Fullscreen content area for rendering web pages. Results and webview coexist without breaking layout.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>Local Web Rendering</h3>
+                    <p>Uses PyWebView (Qt or GTK) to render local HTML files. Pages open instantly without external requests. Allows developers to simulate a lightweight browser experience.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🧩</div>
+                    <h3>Expandable Architecture</h3>
+                    <p>Registry-driven: easy to add new .neo sites. Modular Python API can be extended for more features.</p>
+                </div>
+            </div>
+        </section>
+        
+        <section class="usage-section">
+            <h2>How to Use NeoBrowser</h2>
+            
+            <h3>Launch Browser</h3>
+            <p>Opens with a blank page ready to search.</p>
+            
+            <h3>Search</h3>
+            <p>Type a keyword or .neo domain in the top search bar. Press Enter or click Go.</p>
+            
+            <h3>View Results</h3>
+            <p>Double-click a search result to open the page in the embedded browser. Search bar stays visible for repeated queries.</p>
+            
+            <h3>Add New Sites</h3>
+            <p>Update registry.json with new domains and local HTML paths.</p>
+            
+            <div class="code-block">
+                // Example registry.json entry<br>
+                {<br>
+                &nbsp;&nbsp;"example.neo": {<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;"name": "Example Site",<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;"path": "/path/to/local/file.html"<br>
+                &nbsp;&nbsp;},<br>
+                &nbsp;&nbsp;"fetch://example": {<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;"name": "Example Fetch Site",<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;"path": "/path/to/another/file.html"<br>
+                &nbsp;&nbsp;}<br>
+                }
+            </div>
+        </section>
+        
+        <section>
+            <h2>Future Improvements</h2>
+            <div class="future-features">
+                <div class="future-feature">Add tabbed browsing</div>
+                <div class="future-feature">Implement custom themes</div>
+                <div class="future-feature">Add a local history and bookmarks system</div>
+                <div class="future-feature">Plugin/extension support</div>
+                <div class="future-feature">Sync between multiple instances</div>
+                <div class="future-feature">Enhanced developer tools</div>
+            </div>
+        </section>
+        
+        <section class="fun-section">
+            <p class="fun-text">"lol its fcking fun"</p>
+            <p>Because sometimes building cool stuff is its own reward! 🎉</p>
+        </section>
+    </div>
+    
+    <footer>
+        <p>Built with passion and probably too much caffeine</p>
+        <p>NeoBrowser - Lightweight browsing, heavyweight experience</p>
+    </footer>
+
+    <script>
+        // Add subtle animation to feature cards when they come into view
+        document.addEventListener('DOMContentLoaded', function() {
+            const featureCards = document.querySelectorAll('.feature-card');
+            
+            featureCards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            });
+            
+            setTimeout(() => {
+                featureCards.forEach((card, index) => {
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 100 * index);
+                });
+            }, 500);
+            
+            // Add fun text effect
+            const funText = document.querySelector('.fun-text');
+            let isPulsing = true;
+            
+            funText.addEventListener('click', () => {
+                if (isPulsing) {
+                    funText.style.animation = 'none';
+                    funText.textContent = "IT'S GOD DAMN FUN!";
+                } else {
+                    funText.style.animation = 'pulse 1.5s infinite';
+                    funText.textContent = '"lol its fcking fun"';
+                }
+                isPulsing = !isPulsing;
+            });
+        });
+    </script>
+</body>
+</html>

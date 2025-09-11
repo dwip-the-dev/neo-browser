@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeoBrowser</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+body { background: #0b0b0b; font-family: 'Segoe UI', Arial, sans-serif; display: flex; flex-direction: column; color: #fff; }
+
+header {
+    background: #0b0b0b; padding: 15px 20px; height: 70px; width: 100%; z-index: 10;
+    flex-shrink: 0; box-shadow: 0 2px 10px rgba(0,0,0,0.5); display: flex; align-items: center; border-bottom:1px solid #2a2a2a;
+}
+
+#results {
+    background:#1a1a1a; border-radius:8px; margin:0 20px; list-style:none; display:none; max-height:300px; overflow-y:auto; position:absolute; top:65px; left:20px; right:20px; z-index:9; border:1px solid #333; box-shadow:0 4px 12px rgba(0,0,0,0.4);
+}
+#results li { padding:12px 20px; color:#fff; border-bottom:1px solid #2a2a2a; cursor:pointer; transition: background 0.2s; }
+#results li:hover { background:#2a2a2a; }
+#results li:last-child { border-bottom:none; }
+
+#main-content { flex:1; display:flex; position:relative; width:100%; overflow:hidden; }
+#welcome { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px; width:100%; height:100%; background:#0b0b0b; position:absolute; top:0; left:0; z-index:1; }
+#welcome h1 { font-size:32px; margin-bottom:20px; color:#fff; background:linear-gradient(90deg,#6200ea,#00b0ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+#welcome p { font-size:18px; line-height:1.6; color:#aaa; margin-bottom:25px; max-width:600px; }
+.features { display:flex; flex-wrap:wrap; justify-content:center; gap:20px; margin-top:20px; max-width:800px; }
+.feature { background:#1a1a1a; padding:20px; border-radius:10px; width:160px; text-align:center; flex-grow:1; }
+.feature h3 { color:#6200ea; margin-bottom:10px; }
+.feature p { font-size:14px; color:#888; }
+
+#webview-container { position:absolute; top:0; left:0; width:100%; height:100%; z-index:2; display:none; background:white; }
+#webview { width:100%; height:100%; border:none; }
+
+.loading { display:flex; flex-direction:column; align-items:center; justify-content:center; color:#666; width:100%; height:100%; }
+.spinner { width:40px; height:40px; border:4px solid #333; border-top:4px solid #6200ea; border-radius:50%; animation:spin 1s linear infinite; margin-bottom:15px; }
+@keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+
+#status { padding:20px; text-align:center; color:#666; font-style:italic; width:100%; }
+#debug { position:fixed; bottom:10px; right:10px; background:rgba(0,0,0,0.7); color:#0f0; padding:10px; border-radius:5px; font-family:monospace; font-size:12px; z-index:100; display:none; }
+
+/* Container for search + button */
+#search-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 12px; /* spacing between search bar and button */
+}
+
+/* Search bar */
+#search-bar {
+    flex: 1; /* take all remaining width */
+    background: #1a1a1a;
+    border: 2px solid #4d4d4d;
+    border-radius: 30px;
+    padding: 12px 20px;
+    font-size: 16px;
+    color: #fff;
+    outline: none;
+    transition: all 0.3s;
+}
+
+#search-bar:focus {
+    border-color: #6200ea;
+    box-shadow: 0 0 0 2px rgba(98,0,234,0.2);
+}
+
+/* External Google Button */
+#new-external-tab-btn {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    background: rgba(98, 0, 234, 0.2);
+    border: 1px solid rgba(98, 0, 234, 0.5);
+    border-radius: 12px;
+    backdrop-filter: blur(12px);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(98, 0, 234, 0.4);
+    flex-shrink: 0; /* prevent shrinking */
+}
+
+#new-external-tab-btn:hover {
+    background: rgba(98, 0, 234, 0.4);
+    box-shadow: 0 6px 20px rgba(98, 0, 234, 0.6);
+    transform: translateY(-2px) scale(1.05);
+}
+
+#new-external-tab-btn:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 2px 8px rgba(98, 0, 234, 0.4);
+}
+
+/* Server status indicator */
+#server-status {
+    position: fixed;
+    top: 96%;
+    right: 10px;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 500;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+#server-status.online {
+    color: #00ff00;
+    border: 1px solid rgba(0, 255, 0, 0.3);
+}
+
+#server-status.offline {
+    color: #ff0000;
+    border: 1px solid rgba(255, 0, 0, 0.3);
+}
+
+#server-status.connecting {
+    color: #ffff00;
+    border: 1px solid rgba(255, 255, 0, 0.3);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div id="search-container">
+    <input type="text" id="search-bar" placeholder="Enter query or .neo domain">
+    <button id="new-external-tab-btn">🌐 Google</button>
+  </div>
+</header>
+<!-- Server status indicator -->
+<div id="server-status" class="connecting">Connecting to server...</div>
+
+<ul id="results"></ul>
+
+<div id="main-content">
+    <div id="welcome">
+        <h1>NeoBrowser</h1>
+        <p>Welcome to the NeoBrowser. Enter a search query or .neo domain above to get started.</p>
+        <div class="features">
+            <div class="feature"><h3>Search</h3><p>Find information across the Neo network</p></div>
+            <div class="feature"><h3>Browse</h3><p>Access .neo domains with ease</p></div>
+            <div class="feature"><h3>Discover</h3><p>Explore the decentralized web</p></div>
+            <div class="feature"><h3>Privacy</h3><p>IDGAF</p></div>
+        </div>
+    </div>
+    <div id="webview-container">
+    <webview 
+        id="webview" 
+        src="about:blank"
+        allowpopups
+        allowplugins
+        allowfullscreen
+        webpreferences="allowRunningInsecureContent=true, webSecurity=false">
+    </webview>
+</div>
+</div>
+
+<div id="debug"></div>
+<script>
+const { ipcRenderer } = require('electron');
+
+let GLOBAL_SERVER_URL = null;
+
+// ===== DOM ELEMENTS =====
+const searchBar = document.getElementById('search-bar');
+const resultsList = document.getElementById('results');
+const webview = document.getElementById('webview');
+const webviewContainer = document.getElementById('webview-container');
+const welcome = document.getElementById('welcome');
+const debug = document.getElementById('debug');
+const newExternalBtn = document.getElementById('new-external-tab-btn');
+const serverStatusEl = document.getElementById('server-status');
+
+let overlay = document.getElementById('load-error-overlay');
+if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'load-error-overlay';
+    overlay.style = "position:absolute;top:0;left:0;width:100%;color:red;background:rgba(0,0,0,0.5);z-index:9999;padding:10px;display:none;";
+    webviewContainer.appendChild(overlay);
+}
+
+let debugMode = false;
+let isServerOnline = false;
+
+// ---------------- Debug toggle ----------------
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+        debugMode = !debugMode;
+        debug.style.display = debugMode ? 'block' : 'none';
+        logDebug('Debug mode ' + (debugMode ? 'enabled' : 'disabled'));
+    }
+});
+
+function logDebug(msg) {
+    if (debugMode) {
+        debug.innerHTML += `${new Date().toLocaleTimeString()}: ${msg}<br>`;
+        debug.scrollTop = debug.scrollHeight;
+    }
+    console.log(msg);
+}
+
+// ---------------- Fetch GLOBAL_SERVER_URL from main process ----------------
+async function fetchGlobalServerURL() {
+    try {
+        // Get the server URL from the main process instead of fetching directly
+        GLOBAL_SERVER_URL = await ipcRenderer.invoke('get-server-url');
+        logDebug(`✅ Using server URL from main process: ${GLOBAL_SERVER_URL}`);
+    } catch (err) {
+        console.error("❌ Failed to get server URL:", err);
+        overlay.innerHTML = `Error getting server URL: ${err}`;
+        overlay.style.display = 'block';
+        GLOBAL_SERVER_URL = null;
+    }
+}
+
+// ---------------- Fix old URLs dynamically ----------------
+function fixOldUrls(url) {
+    if (!GLOBAL_SERVER_URL || !url) return url;
+    
+    try {
+        const currentServerHost = new URL(GLOBAL_SERVER_URL).hostname;
+        const urlObj = new URL(url);
+        
+        // If the URL host doesn't match our current server host, fix it
+        if (urlObj.hostname !== currentServerHost) {
+            logDebug(`Fixing old URL: ${urlObj.hostname} -> ${currentServerHost}`);
+            return url.replace(urlObj.hostname, currentServerHost);
+        }
+    } catch (err) {
+        logDebug(`Error fixing URL ${url}: ${err}`);
+    }
+    
+    return url;
+}
+
+// ---------------- Server status ----------------
+async function checkServerStatus() {
+    if (!GLOBAL_SERVER_URL) {
+        await fetchGlobalServerURL(); // Ensure we have the latest URL
+        if (!GLOBAL_SERVER_URL) return;
+    }
+    
+    try {
+        const res = await fetch(`${GLOBAL_SERVER_URL}/status`, { cache: "no-store" });
+        const data = await res.json();
+        if (data.status === "online") {
+            isServerOnline = true;
+            serverStatusEl.textContent = `Connected to Global Server (${data.entries || 0} sites)`;
+            serverStatusEl.className = "online";
+            logDebug("Global server online ✅");
+        } else throw new Error("Server not online");
+    } catch (err) {
+        isServerOnline = false;
+        serverStatusEl.textContent = "Cannot reach Global Server";
+        serverStatusEl.className = "offline";
+        logDebug("Global server offline ❌");
+    }
+}
+
+// ---------------- Search handling ----------------
+searchBar.addEventListener('keypress', async (e) => {
+    if (e.key !== 'Enter') return;
+    const query = searchBar.value.trim();
+    if (!query) return;
+
+    if (/^https?:\/\//i.test(query)) {
+        logDebug(`Opening external site: ${query}`);
+        ipcRenderer.send('open-external-browser', query);
+        return;
+    }
+
+    resultsList.style.display = 'none';
+    webviewContainer.style.display = 'none';
+    overlay.style.display = 'none';
+    welcome.innerHTML = `<div class="loading"><div class="spinner"></div><div>Searching "${query}"...</div></div>`;
+
+    await searchGlobal(query);
+});
+
+async function searchGlobal(query) {
+    if (!GLOBAL_SERVER_URL) {
+        await fetchGlobalServerURL(); // Ensure we have the latest URL
+        if (!GLOBAL_SERVER_URL) return;
+    }
+    
+    try {
+        const res = await fetch(`${GLOBAL_SERVER_URL}/search?query=${encodeURIComponent(query)}`, { cache: "no-store" });
+        const data = await res.json();
+
+        if (data.url) loadUrl(data.url);
+        else displayResults(data.results || []);
+    } catch (err) {
+        logDebug(`Search error: ${err}`);
+        overlay.innerHTML = `Search error: ${err}`;
+        overlay.style.display = 'block';
+    }
+}
+
+// ---------------- Display search results ----------------
+function displayResults(results) {
+    logDebug(`Displaying ${results.length} results`);
+    resultsList.innerHTML = '';
+    if (!results.length) {
+        const li = document.createElement('li');
+        li.textContent = 'No results found';
+        li.style.color = '#888';
+        resultsList.appendChild(li);
+        welcome.innerHTML = '<div id="status">No results found</div>';
+        return;
+    }
+
+    results.forEach(([domain, name, url]) => {
+        const li = document.createElement('li');
+        li.textContent = `${name} — ${domain}`;
+        li.dataset.domain = domain;
+        li.dataset.url = url;
+        resultsList.appendChild(li);
+    });
+
+    resultsList.style.display = 'block';
+    webviewContainer.style.display = 'none';
+    overlay.style.display = 'none';
+}
+
+resultsList.addEventListener('click', (e) => {
+    if (e.target.tagName !== 'LI') return;
+    let url = e.target.dataset.url;
+    const domain = e.target.dataset.domain;
+
+    // Fix old URLs before loading
+    url = fixOldUrls(url);
+
+    resultsList.style.display = 'none';
+    overlay.style.display = 'none';
+    welcome.innerHTML = `<div class="loading"><div class="spinner"></div><div>Loading ${domain}...</div></div>`;
+
+    if (url) loadUrl(url);
+    else overlay.innerHTML = 'No URL returned for this site';
+});
+
+function loadUrl(url) {
+    if (!url) return;
+    
+    // Fix old URLs before loading
+    const fixedUrl = fixOldUrls(url);
+    logDebug(`Loading URL: ${fixedUrl} (original: ${url})`);
+    
+    resultsList.style.display = 'none';
+    welcome.style.display = 'none';
+    webviewContainer.style.display = 'block';
+    overlay.style.display = 'none';
+    webview.src = fixedUrl;
+
+    webview.addEventListener('did-start-loading', () => logDebug('Webview started loading'));
+    webview.addEventListener('did-finish-load', () => logDebug('Webview finished loading'));
+    webview.addEventListener('did-fail-load', (event) => {
+        logDebug(`Webview failed load: ${event.errorDescription} (URL: ${fixedUrl})`);
+        overlay.innerHTML = `Failed to load content: ${event.errorDescription}`;
+        overlay.style.display = 'block';
+    });
+}
+
+// ---------------- External tab ----------------
+newExternalBtn.addEventListener('click', () => {
+    ipcRenderer.send('open-neogoogle');
+});
+
+// ---------------- INIT ----------------
+window.addEventListener("load", async () => {
+    searchBar.focus();
+    await fetchGlobalServerURL();      // Get server URL from main process
+    await checkServerStatus();
+    logDebug("Window fully initialized");
+});
+</script>
+</body>
+</html>

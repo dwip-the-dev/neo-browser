@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoBrowser Search</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background: #0b0b0b;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #fff;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        .title {
+            font-size: 4.5rem;
+            font-weight: bold;
+            margin-bottom: 40px;
+            background: linear-gradient(90deg, #6200ea, #00b0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(98, 0, 234, 0.5);
+            animation: glow 2s infinite alternate;
+        }
+
+        .search-container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .search-form {
+            width: 100%;
+            position: relative;
+        }
+
+        .search-input {
+            background: #1a1a1a;
+            border: 2px solid #4d4d4d;
+            border-radius: 30px;
+            padding: 18px 25px;
+            font-size: 18px;
+            color: #fff;
+            width: 100%;
+            outline: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .search-input:focus {
+            border-color: #6200ea;
+            box-shadow: 0 0 0 3px rgba(98, 0, 234, 0.3);
+        }
+
+        .search-button {
+            background: linear-gradient(90deg, #6200ea, #00b0ff);
+            border: none;
+            padding: 15px 35px;
+            font-size: 18px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(98, 0, 234, 0.3);
+        }
+
+        .search-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(98, 0, 234, 0.4);
+        }
+
+        .search-button:active {
+            transform: translateY(0);
+        }
+
+        .instructions {
+            margin-top: 20px;
+            color: #666;
+            text-align: center;
+            max-width: 500px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .keyboard-hint {
+            margin-top: 15px;
+            color: #444;
+            font-size: 14px;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px rgba(98, 0, 234, 0.5), 0 0 20px rgba(98, 0, 234, 0.3);
+            }
+            to {
+                text-shadow: 0 0 20px rgba(0, 176, 255, 0.5), 0 0 30px rgba(0, 176, 255, 0.3);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 3.5rem;
+            }
+            
+            .search-input {
+                padding: 15px 20px;
+                font-size: 16px;
+            }
+            
+            .search-button {
+                padding: 12px 25px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="title">NeoBrowser</div>
+    
+    <div class="search-container">
+        <form class="search-form" id="searchForm">
+            <input type="text" class="search-input" id="searchInput" placeholder="Search Google..." autofocus>
+        </form>
+        <button type="button" class="search-button" id="searchButton">Search</button>
+    </div>
+    
+    <div class="instructions">
+        Enter your search query above to search using Google
+    </div>
+    
+    <div class="keyboard-hint">
+        Press Enter to search or Ctrl+K to focus the search box
+    </div>
+
+    <script>
+        const searchForm = document.getElementById('searchForm');
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+
+        // Function to perform the search
+        function performSearch() {
+            const query = searchInput.value.trim();
+            if (query) {
+                // Encode the query for URL (spaces become +)
+                const encodedQuery = encodeURIComponent(query).replace(/%20/g, '+');
+                // Redirect to Google search
+                window.location.href = `https://www.google.com/search?q=${encodedQuery}`;
+            }
+        }
+
+        // Form submission handler
+        searchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            performSearch();
+        });
+
+        // Button click handler
+        searchButton.addEventListener('click', performSearch);
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+K to focus search input
+            if (e.ctrlKey && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+            }
+            
+            // Escape to blur search input
+            if (e.key === 'Escape') {
+                searchInput.blur();
+            }
+        });
+
+        // Focus the search input on load
+        searchInput.focus();
+    </script>
+</body>
+</html>

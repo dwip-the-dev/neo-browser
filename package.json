@@ -1,0 +1,64 @@
+{
+  "name": "neobrowser",
+  "version": "5.3.2",
+  "main": "main.js",
+  "type": "module",
+  "description": "This uses Chromium viewer with Electron to render full HTML/CSS/JS. Left persistent rounded search/address bar, Black launch demo page, fetch://<domain>.neo direct navigation, Keyword search over registry.json (matches name or domain) with external Chromium browser.",
+  "scripts": {
+    "start": "electronmon .",
+    "dist": "electron-builder"
+  },
+  "nodemonConfig": {
+    "watch": ["."],
+    "ext": "js,json,html,css",
+    "ignore": [
+      "logs/*",
+      "*.log"
+    ]
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.6.0",
+    "electronmon": "^2.0.3"
+  },
+  "dependencies": {
+    "boolean": "^3.2.0",
+    "buffer-crc32": "^0.2.13",
+    "cacheable-lookup": "^5.0.4",
+    "cacheable-request": "^7.0.4",
+    "clone-response": "^1.0.3",
+    "debug": "^4.4.1",
+    "dotenv": "^17.2.2",
+    "fs-extra": "^8.1.0",
+    "got": "^11.8.6",
+    "node-fetch": "^3.3.2",
+    "yauzl": "^2.10.0"
+  },
+  "author": "Dwip Biswas",
+  "license": "MIT",
+  "build": {
+    "appId": "com.dwip.neobrowser",
+    "productName": "NeoBrowser",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "zip"
+      ],
+      "icon": "icon.jpg"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Utility",
+      "icon": "icon.png"
+    }
+  }
+}

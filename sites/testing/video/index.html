@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoBrowser Video Test</title>
+    <style>
+        body {
+            margin: 0;
+            background: #0b0b0b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+            flex-direction: column;
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: #6200ea;
+        }
+        video {
+            border: 5px solid #6200ea;
+            border-radius: 10px;
+            max-width: 90%;
+            max-height: 70%;
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #00b0ff;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: #6200ea;
+        }
+    </style>
+</head>
+<body>
+    <h1>NeoBrowser Video Test 💀</h1>
+    <video id="testVideo" controls>
+        <source src="test.mp4" type="video/mp4">
+        Your browser does not support HTML5 video.
+    </video>
+
+    <div class="controls">
+        <button onclick="playVideo()">Play</button>
+        <button onclick="pauseVideo()">Pause</button>
+        <button onclick="toggleFullscreen()">Fullscreen</button>
+    </div>
+
+    <script>
+        const video = document.getElementById('testVideo');
+
+        function playVideo() {
+            video.play();
+        }
+
+        function pauseVideo() {
+            video.pause();
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                video.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Optional: auto-play test
+        video.addEventListener('canplay', () => {
+            console.log('Video can play! NeoBrowser is good to go 💀');
+        });
+
+        video.addEventListener('error', (e) => {
+            console.error('Video failed to load:', e);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Download Test</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #121212;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+    }
+    button {
+        padding: 15px 30px;
+        font-size: 18px;
+        background-color: #1f1f1f;
+        border: 2px solid #fff;
+        border-radius: 8px;
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+    }
+    button:hover {
+        background-color: #fff;
+        color: #000;
+    }
+    a {
+        display: none;
+    }
+</style>
+</head>
+<body>
+<h1>NeoBrowser File Download Test 💀</h1>
+<button id="downloadBtn">Download Test File</button>
+<a id="downloadLink"></a>
+
+<script>
+const downloadBtn = document.getElementById('downloadBtn');
+const downloadLink = document.getElementById('downloadLink');
+
+downloadBtn.addEventListener('click', () => {
+    // Create a test file content
+    const fileContent = "NeoBrowser file download test 💀💀💀\nIf you see this, it worked!";
+    const blob = new Blob([fileContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+
+    // Configure the download link
+    downloadLink.href = url;
+    downloadLink.download = "neobrowser_test_file.txt";
+    downloadLink.click();
+
+    // Release the object URL after download
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeoBrowser Ultimate Media Test</title>
+<style>
+    body {
+        background: #0b0b0b;
+        color: #fff;
+        font-family: 'Segoe UI', sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 30px;
+        padding: 20px;
+    }
+    h1 {
+        background: linear-gradient(90deg, #6200ea, #00b0ff, #00ff99);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 2.5rem;
+        animation: glow 2s infinite alternate;
+        text-align: center;
+    }
+    video, audio {
+        max-width: 600px;
+        width: 100%;
+        border-radius: 10px;
+        outline: 2px solid #6200ea;
+    }
+    button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 10px;
+        background: #6200ea;
+        color: #fff;
+        font-size: 16px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    button:hover {
+        background: #00b0ff;
+    }
+    @keyframes glow {
+        from { text-shadow: 0 0 10px #6200ea, 0 0 20px #6200ea; }
+        to { text-shadow: 0 0 20px #00b0ff, 0 0 30px #00b0ff; }
+    }
+</style>
+</head>
+<body>
+<h1>NeoBrowser Ultimate Audio/Video Test 💀</h1>
+
+<h2>Video Test</h2>
+<video controls autoplay loop muted>
+    <source src="test.mp4" type="video/mp4">
+    Your browser does not support video playback.
+</video>
+
+<h2>Audio Test</h2>
+<audio controls autoplay loop>
+    <source src="test.mp3" type="audio/mpeg">
+    Your browser does not support audio playback.
+</audio>
+
+<h2>Simultaneous Test</h2>
+<p>Play video and audio together to test sync and responsiveness.</p>
+<button onclick="playAll()">Play All</button>
+<button onclick="pauseAll()">Pause All</button>
+
+<script>
+const video = document.querySelector('video');
+const audio = document.querySelector('audio');
+
+function playAll() {
+    video.play();
+    audio.play();
+}
+
+function pauseAll() {
+    video.pause();
+    audio.pause();
+}
+</script>
+</body>
+</html>
