@@ -11,9 +11,6 @@ A **fully decentralized, privacy-first web browser** built on Electron. Lightwei
 ![JSON](https://img.shields.io/badge/json-5E5C5C?style=for-the-badge&logo=json&logoColor=white)
 ![No Tracking](https://img.shields.io/badge/No-Tracking-success?style=for-the-badge)
 ![No Ads](https://img.shields.io/badge/No-Ads-red?style=for-the-badge)
-![GitHub issues](https://img.shields.io/github/issues/dwip-the-dev/neobrowser?style=for-the-badge)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/dwip-the-dev/neobrowser?style=for-the-badge)
-![GitHub contributors](https://img.shields.io/github/contributors/dwip-the-dev/neobrowser?style=for-the-badge)
 ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
 
 ---
