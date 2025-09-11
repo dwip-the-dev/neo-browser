@@ -207,7 +207,6 @@ function logDebug(msg) {
 // ---------------- Fetch GLOBAL_SERVER_URL from main process ----------------
 async function fetchGlobalServerURL() {
     try {
-        // Get the server URL from the main process instead of fetching directly
         GLOBAL_SERVER_URL = await ipcRenderer.invoke('get-server-url');
         logDebug(`✅ Using server URL from main process: ${GLOBAL_SERVER_URL}`);
     } catch (err) {
@@ -218,33 +217,27 @@ async function fetchGlobalServerURL() {
     }
 }
 
-// ---------------- Fix old URLs dynamically ----------------
-function fixOldUrls(url) {
-    if (!GLOBAL_SERVER_URL || !url) return url;
-    
-    try {
-        const currentServerHost = new URL(GLOBAL_SERVER_URL).hostname;
-        const urlObj = new URL(url);
-        
-        // If the URL host doesn't match our current server host, fix it
-        if (urlObj.hostname !== currentServerHost) {
-            logDebug(`Fixing old URL: ${urlObj.hostname} -> ${currentServerHost}`);
-            return url.replace(urlObj.hostname, currentServerHost);
-        }
-    } catch (err) {
-        logDebug(`Error fixing URL ${url}: ${err}`);
-    }
-    
-    return url;
+// ---------------- Normalize URLs ----------------
+async function normalizeUrl(url) {
+    if (!url) return null;
+
+    // Already full URL
+    if (/^https?:\/\//i.test(url)) return url;
+
+    // Remove any None/ garbage
+    url = url.replace(/^None\//, '');
+
+    if (!GLOBAL_SERVER_URL) await fetchGlobalServerURL();
+    if (!GLOBAL_SERVER_URL) return null;
+
+    return `${GLOBAL_SERVER_URL}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 
 // ---------------- Server status ----------------
 async function checkServerStatus() {
-    if (!GLOBAL_SERVER_URL) {
-        await fetchGlobalServerURL(); // Ensure we have the latest URL
-        if (!GLOBAL_SERVER_URL) return;
-    }
-    
+    if (!GLOBAL_SERVER_URL) await fetchGlobalServerURL();
+    if (!GLOBAL_SERVER_URL) return;
+
     try {
         const res = await fetch(`${GLOBAL_SERVER_URL}/status`, { cache: "no-store" });
         const data = await res.json();
@@ -283,16 +276,14 @@ searchBar.addEventListener('keypress', async (e) => {
 });
 
 async function searchGlobal(query) {
-    if (!GLOBAL_SERVER_URL) {
-        await fetchGlobalServerURL(); // Ensure we have the latest URL
-        if (!GLOBAL_SERVER_URL) return;
-    }
-    
+    if (!GLOBAL_SERVER_URL) await fetchGlobalServerURL();
+    if (!GLOBAL_SERVER_URL) return;
+
     try {
         const res = await fetch(`${GLOBAL_SERVER_URL}/search?query=${encodeURIComponent(query)}`, { cache: "no-store" });
         const data = await res.json();
 
-        if (data.url) loadUrl(data.url);
+        if (data.url) await loadUrl(data.url);
         else displayResults(data.results || []);
     } catch (err) {
         logDebug(`Search error: ${err}`);
@@ -327,29 +318,32 @@ function displayResults(results) {
     overlay.style.display = 'none';
 }
 
-resultsList.addEventListener('click', (e) => {
+resultsList.addEventListener('click', async (e) => {
     if (e.target.tagName !== 'LI') return;
     let url = e.target.dataset.url;
     const domain = e.target.dataset.domain;
 
-    // Fix old URLs before loading
-    url = fixOldUrls(url);
+    url = await normalizeUrl(url);
 
     resultsList.style.display = 'none';
     overlay.style.display = 'none';
     welcome.innerHTML = `<div class="loading"><div class="spinner"></div><div>Loading ${domain}...</div></div>`;
 
-    if (url) loadUrl(url);
+    if (url) await loadUrl(url);
     else overlay.innerHTML = 'No URL returned for this site';
 });
 
-function loadUrl(url) {
-    if (!url) return;
-    
-    // Fix old URLs before loading
-    const fixedUrl = fixOldUrls(url);
+// ---------------- Load URL ----------------
+async function loadUrl(url) {
+    const fixedUrl = await normalizeUrl(url);
+    if (!fixedUrl) {
+        overlay.innerHTML = 'Invalid URL';
+        overlay.style.display = 'block';
+        return;
+    }
+
     logDebug(`Loading URL: ${fixedUrl} (original: ${url})`);
-    
+
     resultsList.style.display = 'none';
     welcome.style.display = 'none';
     webviewContainer.style.display = 'block';
@@ -373,10 +367,11 @@ newExternalBtn.addEventListener('click', () => {
 // ---------------- INIT ----------------
 window.addEventListener("load", async () => {
     searchBar.focus();
-    await fetchGlobalServerURL();      // Get server URL from main process
+    await fetchGlobalServerURL();
     await checkServerStatus();
     logDebug("Window fully initialized");
 });
 </script>
+
 </body>
 </html>
