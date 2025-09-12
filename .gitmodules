@@ -1,0 +1,3 @@
+[submodule "sites/sites/the-cube"]
+    path = sites/sites/the-cube
+    url = https://example.com/placeholder.git
