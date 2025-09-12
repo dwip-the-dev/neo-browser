@@ -165,6 +165,8 @@ header {
 const { ipcRenderer } = require('electron');
 
 let GLOBAL_SERVER_URL = null;
+let registry = {};
+let debugMode = false;
 
 // ===== DOM ELEMENTS =====
 const searchBar = document.getElementById('search-bar');
@@ -172,259 +174,106 @@ const resultsList = document.getElementById('results');
 const webview = document.getElementById('webview');
 const webviewContainer = document.getElementById('webview-container');
 const welcome = document.getElementById('welcome');
-const debug = document.getElementById('debug');
-const newExternalBtn = document.getElementById('new-external-tab-btn');
 const serverStatusEl = document.getElementById('server-status');
+const newExternalBtn = document.getElementById('new-external-tab-btn');
 
-let overlay = document.getElementById('load-error-overlay');
-if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'load-error-overlay';
-    overlay.style = "position:absolute;top:0;left:0;width:100%;color:red;background:rgba(0,0,0,0.5);z-index:9999;padding:10px;display:none;";
-    webviewContainer.appendChild(overlay);
-}
-
-let debugMode = false;
-let isServerOnline = false;
-
-// ---------------- Debug toggle ----------------
-document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.shiftKey && e.key === 'D') {
-        debugMode = !debugMode;
-        debug.style.display = debugMode ? 'block' : 'none';
-        logDebug('Debug mode ' + (debugMode ? 'enabled' : 'disabled'));
-    }
-});
-
+// ===== DEBUG =====
 function logDebug(msg) {
     if (debugMode) {
-        debug.innerHTML += `${new Date().toLocaleTimeString()}: ${msg}<br>`;
-        debug.scrollTop = debug.scrollHeight;
+        console.log("[DEBUG]", msg);
     }
-    console.log(msg);
 }
 
-// ---------------- Fetch GLOBAL_SERVER_URL from main process ----------------
+// ===== Fetch GLOBAL_SERVER_URL =====
 async function fetchGlobalServerURL() {
     try {
         GLOBAL_SERVER_URL = await ipcRenderer.invoke('get-server-url');
-        logDebug(`✅ Using server URL from main process: ${GLOBAL_SERVER_URL}`);
+        logDebug(`Using server URL: ${GLOBAL_SERVER_URL}`);
     } catch (err) {
         console.error("❌ Failed to get server URL:", err);
-        overlay.innerHTML = `Error getting server URL: ${err}`;
-        overlay.style.display = 'block';
         GLOBAL_SERVER_URL = null;
     }
 }
 
-// ---------------- Server status ----------------
-async function checkServerStatus() {
+// ===== Load Registry =====
+async function loadRegistry() {
     if (!GLOBAL_SERVER_URL) await fetchGlobalServerURL();
     if (!GLOBAL_SERVER_URL) return;
 
     try {
-        const res = await fetch(`${GLOBAL_SERVER_URL}/status`, { cache: "no-store" });
-        const data = await res.json();
-        if (data.status === "online") {
-            isServerOnline = true;
-            serverStatusEl.textContent = `Connected to Global Server (${data.entries || 0} sites)`;
-            serverStatusEl.className = "online";
-            logDebug("Global server online ✅");
-        } else throw new Error("Server not online");
+        const res = await fetch(`${GLOBAL_SERVER_URL}/registry.json?cacheBust=${Date.now()}`);
+        registry = await res.json();
+        logDebug(`Registry loaded: ${Object.keys(registry).length} entries`);
     } catch (err) {
-        isServerOnline = false;
-        serverStatusEl.textContent = "Cannot reach Global Server";
-        serverStatusEl.className = "offline";
-        logDebug("Global server offline ❌");
+        console.error("Failed to load registry:", err);
     }
 }
 
-// ---------------- Fixed Normalize URLs function ----------------
-async function normalizeUrl(url) {
-    if (!url) return null;
-    
-    logDebug(`Normalizing URL: ${url}`);
-    
-    // If it's already a full URL, return it as is
-    if (/^https?:\/\//i.test(url)) return url;
-    
-    // Remove any None/ garbage from the beginning
-    url = url.replace(/^None\//, '');
-    
-    if (!GLOBAL_SERVER_URL) await fetchGlobalServerURL();
-    if (!GLOBAL_SERVER_URL) return null;
-    
-    // For .neo domains, ensure they're in the /site/ directory
-    if (url.includes('.neo')) {
-        // Remove any leading slash first
-        url = url.replace(/^\//, '');
-        
-        // Check if it already starts with site/
-        if (!url.startsWith('site/')) {
-            url = 'site/' + url;
-        }
-    }
-    
-    // Ensure the URL starts with a slash if it doesn't already
-    if (!url.startsWith('/')) {
-        url = '/' + url;
-    }
-    
-    // Construct the full URL
-    const fullUrl = `${GLOBAL_SERVER_URL}${url}`;
-    logDebug(`Normalized to: ${fullUrl}`);
-    return fullUrl;
-}
+// ===== Normalize URL =====
+async function normalizeUrl(domainOrUrl) {
+    if (!domainOrUrl) return null;
 
-// ---------------- Search handling ----------------
-searchBar.addEventListener('keypress', async (e) => {
-    if (e.key !== 'Enter') return;
-    const query = searchBar.value.trim();
-    if (!query) return;
+    // If it’s already a full URL → return directly
+    if (/^https?:\/\//i.test(domainOrUrl)) return domainOrUrl;
 
-    // Check if it's a full URL
-    if (/^https?:\/\//i.test(query)) {
-        logDebug(`Opening external site: ${query}`);
-        ipcRenderer.send('open-external-browser', query);
-        return;
-    }
-
-    // Check if it's a .neo domain that should be normalized
-    if (query.includes('.neo') || query.startsWith('None/')) {
-        logDebug(`Detected .neo domain or None/ prefix: ${query}`);
-        resultsList.style.display = 'none';
-        webviewContainer.style.display = 'none';
-        overlay.style.display = 'none';
-        welcome.innerHTML = `<div class="loading"><div class="spinner"></div><div>Loading ${query}...</div></div>`;
-        
-        const normalizedUrl = await normalizeUrl(query);
-        if (normalizedUrl) {
-            await loadUrl(normalizedUrl);
+    // If domain is in registry, fetch its path
+    if (registry[domainOrUrl]) {
+        const entry = registry[domainOrUrl];
+        if (/^https?:\/\//i.test(entry.path)) {
+            // External (Netlify, etc.)
+            return entry.path;
         } else {
-            overlay.innerHTML = 'Failed to normalize URL';
-            overlay.style.display = 'block';
+            // Internal → attach to PA server
+            if (!GLOBAL_SERVER_URL) await fetchGlobalServerURL();
+            return `${GLOBAL_SERVER_URL}/${entry.path.replace(/^\//, '')}`;
         }
-        return;
     }
 
-    // Otherwise, perform a search
-    resultsList.style.display = 'none';
-    webviewContainer.style.display = 'none';
-    overlay.style.display = 'none';
-    welcome.innerHTML = `<div class="loading"><div class="spinner"></div><div>Searching "${query}"...</div></div>`;
-
-    await searchGlobal(query);
-});
-
-async function searchGlobal(query) {
-    if (!GLOBAL_SERVER_URL) await fetchGlobalServerURL();
-    if (!GLOBAL_SERVER_URL) return;
-
-    try {
-        const res = await fetch(`${GLOBAL_SERVER_URL}/search?query=${encodeURIComponent(query)}`, { cache: "no-store" });
-        const data = await res.json();
-
-        if (data.url) {
-            const normalizedUrl = await normalizeUrl(data.url);
-            if (normalizedUrl) {
-                await loadUrl(normalizedUrl);
-            } else {
-                overlay.innerHTML = 'Failed to normalize URL from search results';
-                overlay.style.display = 'block';
-            }
-        } else {
-            displayResults(data.results || []);
-        }
-    } catch (err) {
-        logDebug(`Search error: ${err}`);
-        overlay.innerHTML = `Search error: ${err}`;
-        overlay.style.display = 'block';
+    // If nothing matched, default: check if it's .neo
+    if (domainOrUrl.endsWith(".neo")) {
+        if (!GLOBAL_SERVER_URL) await fetchGlobalServerURL();
+        return `${GLOBAL_SERVER_URL}/site/${domainOrUrl}`;
     }
+
+    return null;
 }
 
-// ---------------- Display search results ----------------
-function displayResults(results) {
-    logDebug(`Displaying ${results.length} results`);
-    resultsList.innerHTML = '';
-    if (!results.length) {
-        const li = document.createElement('li');
-        li.textContent = 'No results found';
-        li.style.color = '#888';
-        resultsList.appendChild(li);
-        welcome.innerHTML = '<div id="status">No results found</div>';
-        return;
-    }
+// ===== Load URL =====
+async function loadUrl(url, label = "") {
+    if (!url) return;
 
-    results.forEach(([domain, name, url]) => {
-        const li = document.createElement('li');
-        li.textContent = `${name} — ${domain}`;
-        li.dataset.domain = domain;
-        
-        // Store the original URL as-is
-        li.dataset.url = url;
-        resultsList.appendChild(li);
-    });
+    logDebug(`Loading: ${url}`);
 
-    resultsList.style.display = 'block';
-    webviewContainer.style.display = 'none';
-    overlay.style.display = 'none';
-}
+    welcome.innerHTML = `<div class="loading"><div class="spinner"></div><div>Loading ${label || url}...</div></div>`;
+    webviewContainer.style.display = "block";
 
-resultsList.addEventListener('click', async (e) => {
-    if (e.target.tagName !== 'LI') return;
-    let url = e.target.dataset.url;
-    const domain = e.target.dataset.domain;
-
-    // Normalize the URL before loading
-    url = await normalizeUrl(url);
-
-    resultsList.style.display = 'none';
-    overlay.style.display = 'none';
-    welcome.innerHTML = `<div class="loading"><div class="spinner"></div><div>Loading ${domain}...</div></div>`;
-
-    if (url) await loadUrl(url);
-    else overlay.innerHTML = 'No URL returned for this site';
-});
-
-// ---------------- Load URL ----------------
-async function loadUrl(url) {
-    // URL should already be normalized at this point
-    if (!url) {
-        overlay.innerHTML = 'Invalid URL';
-        overlay.style.display = 'block';
-        return;
-    }
-
-    logDebug(`Loading URL: ${url}`);
-
-    resultsList.style.display = 'none';
-    welcome.style.display = 'none';
-    webviewContainer.style.display = 'block';
-    overlay.style.display = 'none';
-    
-    // Clear any previous error
-    overlay.style.display = 'none';
-    
-    // Reset webview and load the URL
-    webview.src = 'about:blank';
-    
-    // Add a small delay to ensure webview is reset
+    webview.src = "about:blank";
     setTimeout(() => {
         webview.src = url;
     }, 50);
 }
 
-// ---------------- External tab ----------------
-newExternalBtn.addEventListener('click', () => {
-    ipcRenderer.send('open-neogoogle');
+// ===== Search Handling =====
+searchBar.addEventListener("keypress", async (e) => {
+    if (e.key !== "Enter") return;
+    const query = searchBar.value.trim();
+    if (!query) return;
+
+    let url = await normalizeUrl(query);
+    if (url) {
+        await loadUrl(url, query);
+        return;
+    }
+
+    // Fallback: external browser
+    ipcRenderer.send("open-external-browser", query);
 });
 
-// ---------------- INIT ----------------
+// ===== Init =====
 window.addEventListener("load", async () => {
-    searchBar.focus();
     await fetchGlobalServerURL();
-    await checkServerStatus();
-    logDebug("Window fully initialized");
+    await loadRegistry();
+    logDebug("NeoBrowser ready ✅");
 });
 </script>
 </body>
