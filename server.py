@@ -30,6 +30,7 @@ REG_PATH = os.path.join(BASE_DIR, "registry.json")
 SERVER_HOST = "0.0.0.0"
 SERVER_PORT = 5000
 GLOBAL_SERVER_URL = os.getenv("GLOBAL_SERVER_URL")
+#GLOBAL_SERVER_URL is not required for normal use use only for testing purposes
 # ---------------- Registry ----------------
 def load_registry():
     if not os.path.exists(REG_PATH):
