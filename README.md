@@ -40,7 +40,7 @@ A **fully decentralized, privacy-first web browser** built on Electron. Lightwei
 
 ## 📸 Demo
 
-### 🔍 Home & Search
+### 🔍 Home & Search 
 ![Demo Search](demo/demo-search.png)
 
 ### 🌐 Site Loading
