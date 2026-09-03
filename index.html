@@ -11,6 +11,14 @@
 </head>
 <body>
 
+    <!-- BROWSER TAB STRIP -->
+    <div id="tab-strip" class="tab-strip">
+        <div id="tabs-container" class="tabs-container"></div>
+        <button class="new-tab-btn" id="btn-new-tab" title="New Tab (Ctrl+T)">
+            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        </button>
+    </div>
+
     <!-- BROWSER HEADER CHROME -->
     <header>
         <!-- Navigation Buttons -->
@@ -42,7 +50,7 @@
                     <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
                     <span id="protocol-text">fetch://</span>
                 </div>
-                <input type="text" id="omnibox-input" placeholder="Search Neo network or enter .neo domain..." autocomplete="off">
+                <input type="text" id="omnibox-input" placeholder="Search 150+ decentralized sites or enter .neo domain..." autocomplete="off">
                 <div class="omnibox-actions">
                     <button class="omnibox-btn" id="btn-clear-omnibox" title="Clear">✕</button>
                     <button class="omnibox-btn" id="btn-go-omnibox" title="Navigate">↵</button>
@@ -70,6 +78,74 @@
         </div>
     </header>
 
+    <!-- BOOKMARKS BAR -->
+    <div id="bookmarks-bar" class="bookmarks-bar">
+        <div class="bookmarks-list">
+            <button class="bm-btn" data-domain="share.neo" title="NeoShare Ephemeral Drop">
+                <span class="bm-icon">📡</span><span>NeoShare</span>
+            </button>
+            <button class="bm-btn" data-domain="neural-chat.neo" title="Neural Chat AI Assistant">
+                <span class="bm-icon">🤖</span><span>NeuralChat</span>
+            </button>
+            <button class="bm-btn" data-domain="markdown-studio.neo" title="Markdown Live Studio">
+                <span class="bm-icon">💻</span><span>Markdown</span>
+            </button>
+            <button class="bm-btn" data-domain="crypto-tracker.neo" title="Crypto Tracker Pro">
+                <span class="bm-icon">🪙</span><span>Crypto</span>
+            </button>
+            <button class="bm-btn" data-domain="2048.neo" title="2048 Classic Arcade">
+                <span class="bm-icon">🎮</span><span>2048</span>
+            </button>
+            <button class="bm-btn" data-domain="threat-map.neo" title="Global Cyber Threat Map">
+                <span class="bm-icon">🛡️</span><span>ThreatMap</span>
+            </button>
+            <button class="bm-btn" data-domain="lofi-beats.neo" title="Lo-Fi Radio Player">
+                <span class="bm-icon">🎵</span><span>LoFi</span>
+            </button>
+            <button class="bm-btn" data-domain="solar-system-3d.neo" title="3D Solar System Explorer">
+                <span class="bm-icon">🪐</span><span>Cosmos</span>
+            </button>
+        </div>
+        <div class="bookmarks-tools">
+            <button class="bm-tool-btn" id="btn-toggle-downloads" title="Downloads Manager (Ctrl+J)">
+                <span>📥 Downloads</span>
+            </button>
+            <button class="bm-tool-btn" id="btn-toggle-history" title="Browsing History (Ctrl+H)">
+                <span>🕒 History</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- DOWNLOADS & HISTORY DRAWERS -->
+    <div id="downloads-drawer" class="browser-drawer" style="display: none;">
+        <div class="drawer-header">
+            <div class="drawer-title">
+                <span>📥 Downloads</span>
+                <span class="drawer-badge" id="downloads-count">0 items</span>
+            </div>
+            <button class="drawer-close-btn" id="btn-close-downloads">✕</button>
+        </div>
+        <div class="drawer-body" id="downloads-list">
+            <div class="drawer-empty">No downloads yet. Transfer files using NeoShare or download software from app.neo.</div>
+        </div>
+    </div>
+
+    <div id="history-drawer" class="browser-drawer" style="display: none;">
+        <div class="drawer-header">
+            <div class="drawer-title">
+                <span>🕒 Browsing History</span>
+                <span class="drawer-badge" id="history-count">0 sites</span>
+            </div>
+            <div class="drawer-header-actions">
+                <button class="drawer-action-btn" id="btn-clear-history">Clear</button>
+                <button class="drawer-close-btn" id="btn-close-history">✕</button>
+            </div>
+        </div>
+        <div class="drawer-body" id="history-list">
+            <div class="drawer-empty">No history recorded yet. Visit any decentralized .neo site!</div>
+        </div>
+    </div>
+
     <!-- Loading Progress Bar -->
     <div id="loading-bar"></div>
 
@@ -93,7 +169,7 @@
             <div class="search-box-wrap">
                 <div class="search-box">
                     <svg class="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                    <input type="text" id="hero-search-input" placeholder="Search 45+ decentralized games, official sites, and tools..." autofocus>
+                    <input type="text" id="hero-search-input" placeholder="Search 150+ decentralized sites, AI tools, games, or enter .neo domain..." autofocus>
                     <button class="clear-search-btn" id="hero-clear-btn">✕</button>
                 </div>
             </div>
@@ -234,6 +310,7 @@
     <script src="js/browser.js"></script>
     <script src="js/search.js"></script>
     <script src="js/discover.js"></script>
+    <script src="js/tabs.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

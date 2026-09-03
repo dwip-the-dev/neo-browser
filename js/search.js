@@ -111,6 +111,9 @@ function showHomeView() {
     if (protocolText) protocolText.textContent = "fetch://";
     currentLoadedDomain = null;
     hideWebview();
+    if (typeof updateActiveTabState === 'function') {
+        updateActiveTabState("", "NeoSearch");
+    }
     currentFeatured4 = pick4RandomSites();
     isShowingAll = false;
     renderDiscoverGrid();

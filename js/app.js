@@ -1,6 +1,7 @@
 // ==================== APP INITIALIZATION & EVENT BINDINGS ====================
 window.addEventListener('DOMContentLoaded', async () => {
     initRegistry();
+    initTabs();
     renderDiscoverGrid();
 
     try {

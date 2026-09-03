@@ -53,6 +53,11 @@ function loadNeoDomain(domain) {
     const targetUrl = `${baseUrl}/site/${domain}/`;
     console.log(`🚀 Loading .neo site [${domain}] -> ${targetUrl}`);
     
+    if (typeof updateActiveTabState === 'function') {
+        const title = REGISTRY[domain] ? REGISTRY[domain].name : domain;
+        updateActiveTabState(domain, title);
+    }
+
     showWebview();
     showLoading();
     if (webview) webview.src = targetUrl;
