@@ -540,14 +540,6 @@ header {
 }
 
 /* Action Buttons (Google Style) */
-.search-actions {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    margin-bottom: 36px;
-    flex-wrap: wrap;
-}
 .action-btn {
     padding: 10px 22px;
     border-radius: var(--radius-md);
@@ -577,36 +569,40 @@ header {
     transform: translateY(-2px);
 }
 
-/* Category Filter Tabs */
-.filter-tabs {
+.search-actions {
     display: flex;
-    gap: 8px;
-    margin-bottom: 28px;
-    overflow-x: auto;
-    max-width: 100%;
-    padding-bottom: 4px;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 48px;
+    flex-wrap: wrap;
 }
-.tab-btn {
-    padding: 7px 16px;
+
+/* Section Header & Action Buttons */
+.section-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.small-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
     border-radius: var(--radius-full);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
+    color: var(--text-muted);
     background: var(--bg-surface-elevated);
     border: 1px solid var(--border-subtle);
-    color: var(--text-muted);
     cursor: pointer;
     transition: all 0.2s ease;
-    white-space: nowrap;
 }
-.tab-btn:hover {
+.small-action-btn:hover {
     color: #fff;
     background: var(--bg-surface-hover);
-}
-.tab-btn.active {
-    background: rgba(139, 92, 246, 0.2);
-    border-color: var(--primary);
-    color: #c084fc;
-    box-shadow: 0 0 12px rgba(139, 92, 246, 0.25);
+    border-color: rgba(139, 92, 246, 0.4);
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
 }
 
 /* ==================== SEARCH RESULTS VIEW (SERP) ==================== */
@@ -784,8 +780,22 @@ header {
 
 .discover-grid {
     display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    transition: all 0.3s ease;
+}
+.discover-grid.all-mode {
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 14px;
+}
+@media (max-width: 960px) {
+    .discover-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 520px) {
+    .discover-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .site-card {
@@ -972,14 +982,6 @@ header {
             <button class="action-btn btn-secondary" id="btn-search-google">🌐 Search Google Web</button>
         </div>
 
-        <!-- Category Filters -->
-        <div class="filter-tabs">
-            <button class="tab-btn active" data-cat="all">⚡ All Sites (<span id="count-all">45</span>)</button>
-            <button class="tab-btn" data-cat="Games">🎮 Games &amp; Arcade (<span id="count-games">30</span>)</button>
-            <button class="tab-btn" data-cat="Official">🏢 Official Portals (<span id="count-official">7</span>)</button>
-            <button class="tab-btn" data-cat="Testing">🧪 Testing &amp; Media (<span id="count-testing">8</span>)</button>
-        </div>
-
         <!-- SEARCH RESULTS VIEW (SERP) -->
         <div id="results-view">
             <div class="results-header">
@@ -1007,7 +1009,14 @@ header {
                     <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                     <span>Featured Decentralized Sites</span>
                 </div>
-                <span class="section-counter" id="grid-counter">Showing 45 sites</span>
+                <div class="section-actions">
+                    <button class="small-action-btn" id="btn-shuffle-featured" title="Roll 4 new random sites">
+                        <span>🎲 Roll 4 New</span>
+                    </button>
+                    <button class="small-action-btn" id="btn-toggle-all" title="Toggle view all sites">
+                        <span id="toggle-all-text">View All (45)</span>
+                    </button>
+                </div>
             </div>
             <div class="discover-grid" id="discover-grid"></div>
         </div>
@@ -1166,19 +1175,39 @@ function updateCounts() {
     document.getElementById('count-testing').textContent = testing;
 }
 
+let isShowingAll = false;
+let currentFeatured4 = [];
+
+function pick4RandomSites() {
+    const entries = Object.entries(REGISTRY);
+    if (entries.length <= 4) return entries;
+    const shuffled = [...entries].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 4);
+}
+
 // ==================== DISCOVER GRID RENDERING ====================
 function renderDiscoverGrid() {
     discoverGrid.innerHTML = '';
     const entries = Object.entries(REGISTRY);
+    if (entries.length === 0) return;
 
-    const filtered = entries.filter(([domain, meta]) => {
-        if (currentCategory === "all") return true;
-        return getSiteCategory(meta.path) === currentCategory;
-    });
+    let displayEntries;
+    const toggleText = document.getElementById('toggle-all-text');
 
-    gridCounter.textContent = `Showing ${filtered.length} sites`;
+    if (isShowingAll) {
+        discoverGrid.classList.add('all-mode');
+        displayEntries = entries;
+        if (toggleText) toggleText.textContent = "Show Less (4)";
+    } else {
+        discoverGrid.classList.remove('all-mode');
+        if (currentFeatured4.length === 0) {
+            currentFeatured4 = pick4RandomSites();
+        }
+        displayEntries = currentFeatured4;
+        if (toggleText) toggleText.textContent = `View All (${entries.length})`;
+    }
 
-    filtered.forEach(([domain, meta]) => {
+    displayEntries.forEach(([domain, meta]) => {
         const cat = getSiteCategory(meta.path);
         const icon = SITE_ICONS[domain] || (cat === "Games" ? "🎮" : cat === "Official" ? "⚡" : "🧪");
         const badgeClass = cat === "Games" ? "game" : cat === "Official" ? "official" : "media";
@@ -1191,7 +1220,7 @@ function renderDiscoverGrid() {
                 <span class="card-badge ${badgeClass}">${cat}</span>
             </div>
             <div class="card-bottom">
-                <div class="card-name" title="${meta.name}">${meta.name}</div>
+                <div class="card-name" title="${escapeHtml(meta.name)}">${escapeHtml(meta.name)}</div>
                 <div class="card-domain">fetch://${domain}</div>
             </div>
         `;
@@ -1300,6 +1329,9 @@ function showHomeView() {
     protocolText.textContent = "fetch://";
     currentLoadedDomain = null;
     hideWebview();
+    currentFeatured4 = pick4RandomSites();
+    isShowingAll = false;
+    renderDiscoverGrid();
 }
 
 function escapeHtml(str) {
@@ -1439,14 +1471,17 @@ async function checkServerStatus() {
 
 // ==================== EVENT LISTENERS ====================
 
-// Category filter tabs
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentCategory = btn.dataset.cat;
-        renderDiscoverGrid();
-    });
+// Shuffle 4 featured sites
+document.getElementById('btn-shuffle-featured').addEventListener('click', () => {
+    isShowingAll = false;
+    currentFeatured4 = pick4RandomSites();
+    renderDiscoverGrid();
+});
+
+// Toggle view all sites
+document.getElementById('btn-toggle-all').addEventListener('click', () => {
+    isShowingAll = !isShowingAll;
+    renderDiscoverGrid();
 });
 
 // Hero search events

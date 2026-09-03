@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Cube - 3D Neo Experience</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body {
+    background: radial-gradient(circle at 50% 50%, #1a103c 0%, #08080f 100%);
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    perspective: 1200px;
+}
+
+header {
+    position: absolute;
+    top: 24px;
+    text-align: center;
+    z-index: 10;
+}
+h1 {
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    background: linear-gradient(135deg, #c084fc 0%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-transform: uppercase;
+    filter: drop-shadow(0 0 20px rgba(192, 132, 252, 0.4));
+}
+p.subtitle {
+    font-size: 13px;
+    color: #a1a1aa;
+    margin-top: 4px;
+}
+
+/* 3D Scene */
+.scene {
+    width: 220px;
+    height: 220px;
+    position: relative;
+    transform-style: preserve-3d;
+    cursor: grab;
+    transition: transform 0.05s ease-out;
+}
+.scene:active {
+    cursor: grabbing;
+}
+
+.cube {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    transform-style: preserve-3d;
+}
+
+.face {
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 6px;
+    padding: 8px;
+    background: rgba(15, 15, 25, 0.95);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8), 0 0 25px rgba(139, 92, 246, 0.2);
+}
+
+.cell {
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+.cell:hover {
+    filter: brightness(1.25);
+    transform: scale(0.96);
+}
+
+/* Face Orientations */
+.face-front  { transform: rotateY(0deg) translateZ(110px); }
+.face-back   { transform: rotateY(180deg) translateZ(110px); }
+.face-right  { transform: rotateY(90deg) translateZ(110px); }
+.face-left   { transform: rotateY(-90deg) translateZ(110px); }
+.face-top    { transform: rotateX(90deg) translateZ(110px); }
+.face-bottom { transform: rotateX(-90deg) translateZ(110px); }
+
+/* Face Colors */
+.color-cyan   { background: #06b6d4; box-shadow: 0 0 12px rgba(6, 182, 212, 0.5); }
+.color-purple { background: #8b5cf6; box-shadow: 0 0 12px rgba(139, 92, 246, 0.5); }
+.color-rose   { background: #f43f5e; box-shadow: 0 0 12px rgba(244, 63, 94, 0.5); }
+.color-amber  { background: #f59e0b; box-shadow: 0 0 12px rgba(245, 158, 11, 0.5); }
+.color-green  { background: #10b981; box-shadow: 0 0 12px rgba(16, 185, 129, 0.5); }
+.color-blue   { background: #3b82f6; box-shadow: 0 0 12px rgba(59, 130, 246, 0.5); }
+
+/* Controls */
+.controls {
+    position: absolute;
+    bottom: 30px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    z-index: 10;
+}
+button.btn {
+    padding: 10px 22px;
+    border-radius: 9999px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #fff;
+    transition: all 0.2s;
+}
+button.btn:hover {
+    background: rgba(139, 92, 246, 0.3);
+    border-color: #8b5cf6;
+    box-shadow: 0 0 16px rgba(139, 92, 246, 0.4);
+    transform: translateY(-2px);
+}
+.stats {
+    position: absolute;
+    bottom: 85px;
+    font-size: 13px;
+    color: #a1a1aa;
+    z-index: 10;
+}
+</style>
+</head>
+<body>
+
+<header>
+    <h1>THE CUBE</h1>
+    <p class="subtitle">Drag to rotate 360° • Click tiles to cycle colors</p>
+</header>
+
+<div class="scene" id="scene">
+    <div class="cube" id="cube">
+        <div class="face face-front" id="front"></div>
+        <div class="face face-back" id="back"></div>
+        <div class="face face-right" id="right"></div>
+        <div class="face face-left" id="left"></div>
+        <div class="face face-top" id="top"></div>
+        <div class="face face-bottom" id="bottom"></div>
+    </div>
+</div>
+
+<div class="stats" id="stats">Moves: 0 • Rotation: -25°, 35°</div>
+
+<div class="controls">
+    <button class="btn" id="btn-shuffle">🎲 Shuffle Cube</button>
+    <button class="btn" id="btn-reset">↺ Reset View</button>
+    <button class="btn" id="btn-spin">⚡ Auto Spin</button>
+</div>
+
+<script>
+const COLORS = ["color-cyan", "color-purple", "color-rose", "color-amber", "color-green", "color-blue"];
+const DEFAULT_COLORS = {
+    front: "color-cyan",
+    back: "color-blue",
+    right: "color-purple",
+    left: "color-rose",
+    top: "color-amber",
+    bottom: "color-green"
+};
+
+let rotX = -25;
+let rotY = 35;
+let isDragging = false;
+let startX, startY;
+let moves = 0;
+let autoSpin = false;
+let spinId = null;
+
+const cube = document.getElementById('cube');
+const scene = document.getElementById('scene');
+const stats = document.getElementById('stats');
+
+function updateTransform() {
+    cube.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+    stats.textContent = `Moves: ${moves} • Rotation: ${Math.round(rotX)}°, ${Math.round(rotY)}°`;
+}
+
+function initFaces() {
+    Object.entries(DEFAULT_COLORS).forEach(([faceId, colorClass]) => {
+        const faceEl = document.getElementById(faceId);
+        faceEl.innerHTML = '';
+        for (let i = 0; i < 9; i++) {
+            const cell = document.createElement('div');
+            cell.className = `cell ${colorClass}`;
+            cell.addEventListener('click', (e) => {
+                e.stopPropagation();
+                cycleCellColor(cell);
+            });
+            faceEl.appendChild(cell);
+        }
+    });
+    updateTransform();
+}
+
+function cycleCellColor(cell) {
+    const current = COLORS.find(c => cell.classList.contains(c));
+    const nextIdx = (COLORS.indexOf(current) + 1) % COLORS.length;
+    cell.className = `cell ${COLORS[nextIdx]}`;
+    moves++;
+    updateTransform();
+}
+
+function shuffleCube() {
+    document.querySelectorAll('.cell').forEach(cell => {
+        const randomColor = COLORS[Math.floor(Math.random() * COLORS.length)];
+        cell.className = `cell ${randomColor}`;
+    });
+    moves = 0;
+    updateTransform();
+}
+
+// Mouse Drag Rotation
+scene.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    if (autoSpin) toggleAutoSpin();
+});
+
+window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const deltaX = e.clientX - startX;
+    const deltaY = e.clientY - startY;
+    rotY += deltaX * 0.7;
+    rotX -= deltaY * 0.7;
+    startX = e.clientX;
+    startY = e.clientY;
+    updateTransform();
+});
+
+window.addEventListener('mouseup', () => { isDragging = false; });
+
+// Touch Drag Rotation
+scene.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+        isDragging = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        if (autoSpin) toggleAutoSpin();
+    }
+});
+window.addEventListener('touchmove', (e) => {
+    if (!isDragging || e.touches.length !== 1) return;
+    const deltaX = e.touches[0].clientX - startX;
+    const deltaY = e.touches[0].clientY - startY;
+    rotY += deltaX * 0.7;
+    rotX -= deltaY * 0.7;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    updateTransform();
+});
+window.addEventListener('touchend', () => { isDragging = false; });
+
+// Buttons
+document.getElementById('btn-shuffle').addEventListener('click', shuffleCube);
+document.getElementById('btn-reset').addEventListener('click', () => {
+    rotX = -25;
+    rotY = 35;
+    initFaces();
+});
+
+function toggleAutoSpin() {
+    autoSpin = !autoSpin;
+    document.getElementById('btn-spin').textContent = autoSpin ? "⏸ Pause Spin" : "⚡ Auto Spin";
+    if (autoSpin) {
+        spinId = setInterval(() => {
+            rotY += 1;
+            rotX = -25 + Math.sin(Date.now() / 1500) * 15;
+            updateTransform();
+        }, 20);
+    } else {
+        clearInterval(spinId);
+    }
+}
+document.getElementById('btn-spin').addEventListener('click', toggleAutoSpin);
+
+initFaces();
+</script>
+</body>
+</html>
