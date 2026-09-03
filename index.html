@@ -889,6 +889,65 @@ header {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+/* ==================== SEARCH FOOTER ==================== */
+.search-footer {
+    width: 100%;
+    max-width: 1020px;
+    margin-top: 50px;
+    border-top: 1px solid var(--border-subtle);
+    padding: 24px 0 10px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.footer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.footer-links {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+.footer-link {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+    cursor: pointer;
+}
+.footer-link:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+.footer-bottom {
+    font-size: 12px;
+    color: var(--text-dim);
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    padding-top: 12px;
+}
+.footer-contact-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.footer-contact-link {
+    color: var(--text-muted);
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.footer-contact-link:hover {
+    color: var(--accent);
+}
+.dot-sep {
+    color: var(--text-dim);
+}
 </style>
 </head>
 <body>
@@ -1020,6 +1079,32 @@ header {
             </div>
             <div class="discover-grid" id="discover-grid"></div>
         </div>
+
+        <!-- SEARCH FOOTER -->
+        <footer class="search-footer">
+            <div class="footer-row footer-top">
+                <div class="footer-links">
+                    <a href="javascript:void(0)" class="footer-link" data-domain="about.neo">About</a>
+                    <a href="javascript:void(0)" class="footer-link" data-domain="home.neo">Official Portal</a>
+                    <a href="javascript:void(0)" class="footer-link" data-domain="app.neo">Downloads</a>
+                    <a href="javascript:void(0)" class="footer-link" data-domain="update.neo">Changelog</a>
+                </div>
+                <div class="footer-links">
+                    <a href="javascript:void(0)" class="footer-link" data-domain="privacy.neo">Privacy Policy</a>
+                    <a href="javascript:void(0)" class="footer-link" data-domain="pricing.neo">Pricing</a>
+                    <a href="javascript:void(0)" class="footer-link" data-domain="contact.neo">Contact</a>
+                    <a href="javascript:void(0)" class="footer-link external-link" data-url="https://github.com/dwip-the-dev/neo-browser">GitHub ↗</a>
+                </div>
+            </div>
+            <div class="footer-row footer-bottom">
+                <div class="footer-copy">© 2026 NeoBrowser Decentralized Network • Built with passion by dwip-the-dev</div>
+                <div class="footer-contact-badge">
+                    <a href="javascript:void(0)" class="footer-contact-link external-link" data-url="https://t.me/dwip_thedev">Telegram: @dwip_thedev</a>
+                    <span class="dot-sep">•</span>
+                    <a href="javascript:void(0)" class="footer-contact-link external-link" data-url="mailto:dwipbiswas@yahoo.com">dwipbiswas@yahoo.com</a>
+                </div>
+            </div>
+        </footer>
     </div>
 
     <!-- EMBEDDED WEBVIEW BROWSER -->
@@ -1661,6 +1746,22 @@ document.addEventListener('keydown', (e) => {
     }
     if (e.altKey && e.key === 'ArrowRight') {
         if (webview.canGoForward()) webview.goForward();
+    }
+});
+
+// Footer Navigation & External Link Handlers
+document.addEventListener('click', (e) => {
+    const domainLink = e.target.closest('.footer-link[data-domain]');
+    if (domainLink) {
+        e.preventDefault();
+        loadNeoDomain(domainLink.dataset.domain);
+        return;
+    }
+    const externalLink = e.target.closest('.external-link[data-url]');
+    if (externalLink) {
+        e.preventDefault();
+        ipcRenderer.send('open-external-browser', externalLink.dataset.url);
+        return;
     }
 });
 

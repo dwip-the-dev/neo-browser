@@ -55,8 +55,8 @@ A **fully decentralized, privacy-first web browser** built on Electron. Lightwei
 
 1. **Clone and install**
    ```bash
-   git clone https://github.com/dwip-the-dev/neobrowser.git
-   cd neobrowser
+   git clone https://github.com/dwip-the-dev/neo-browser.git
+   cd neo-browser
    npm install
    ```
 
@@ -74,23 +74,21 @@ A **fully decentralized, privacy-first web browser** built on Electron. Lightwei
 
 ## 🔑 How It Works
 
-NeoBrowser fetches the latest server configuration from a public JSON file:
+NeoBrowser connects to the live serverless backend hosted on Vercel:
 
 ```json
 {
-  "GLOBAL_SERVER_URL": "https://example-server.trycloudflare.com"
+  "GLOBAL_SERVER_URL": "https://neobrowser-bcknd.vercel.app"
 }
 ```
 
-All requests automatically use this dynamically updated URL, ensuring you never hit dead servers.
-
-The configuration can be found at: `https://neobrowser-backend.github.io/key/index.json`
+All requests automatically route to this dynamically resolved endpoint, providing fast access to all 45 `.neo` decentralized sites.
 
 ---
 
 ## 🛠️ Development
 
-**Hot reload** is enabled via electronmon. The browser will automatically restart on file changes.
+**Hot reload** is enabled via `electronmon`. The browser will automatically reload on file changes.
 
 **Adding sites** is done through JSON configuration in `registry.json`:
 
@@ -102,43 +100,31 @@ The configuration can be found at: `https://neobrowser-backend.github.io/key/ind
 ```
 
 **Protocols**:
-- `fetch://` - Custom sandboxed fetch requests
+- `fetch://` - Custom sandboxed fetch requests for .neo sites
 
 ---
 
 ## 📅 Roadmap
 
+- [x] NeoSearch Google-style engine v2.0
+- [x] 45 Decentralized sites 100% operational
+- [x] 4-site randomized discovery grid
+- [x] Vercel Serverless cloud backend
 - [ ] Multi-tab support
 - [ ] Windows app build
-- [ ] Built-in extensions (adblock toggle, custom DNS)
-- [ ] Encrypted P2P mode (serverless experimental)
-- [ ] Mobile app builds (Android / iOS)
-- [ ] Plugin marketplace
+- [ ] Mobile builds (Android / iOS)
 
 ---
 
-## ⚠️ Disclaimer
+## 📬 Contact & Support
 
-NeoBrowser is an **experimental project**. Do not use it for sensitive browsing unless you fully understand the privacy/security model. The logging directory is temporary and will be removed in future releases.
-
----
-
-## 💡 Credits
-
-Built with [Electron](https://www.electronjs.org/) and inspired by decentralized & privacy-first software like **Tails OS**.
-
----
-
-## 🖤 Contributing
-
-Contributions are welcome! Open an issue, submit a PR, or suggest features.
+- **Developer**: Dwip Biswas ([@dwip-the-dev](https://github.com/dwip-the-dev))
+- **Email**: [dwipbiswas@yahoo.com](mailto:dwipbiswas@yahoo.com)
+- **Telegram**: [@dwip_thedev](https://t.me/dwip_thedev)
+- **Live Server**: [neobrowser-bcknd.vercel.app](https://neobrowser-bcknd.vercel.app)
 
 ---
 
 ## 📜 License
 
-MIT License © 2025 NeoBrowser Team
-
----
-
-*This README is a living document that will evolve with the project. Check back regularly for updates!*
+MIT License © 2026 NeoBrowser (dwip-the-dev)

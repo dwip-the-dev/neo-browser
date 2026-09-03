@@ -3,100 +3,339 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NeoBrowser - Update</title>
+<title>NeoBrowser - Updates &amp; Changelog</title>
 <style>
-body {
-    margin:0;
-    padding:0;
-    font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg,#0b0b0b,#1a0033);
-    color: #fff;
+:root {
+    --bg-base: #09090b;
+    --bg-surface: #111116;
+    --bg-surface-elevated: #181822;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-hover: rgba(168, 85, 247, 0.4);
+    --text-main: #f4f4f5;
+    --text-muted: #a1a1aa;
+    --primary: #8b5cf6;
+    --accent: #38bdf8;
+    --success: #22c55e;
 }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(circle at 50% 10%, rgba(139, 92, 246, 0.15) 0%, transparent 60%), var(--bg-base);
+    color: var(--text-main);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
 header {
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:1rem 2rem;
-    background: rgba(10,10,10,0.85);
-    box-shadow:0 4px 20px rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2.5rem;
+    background: rgba(17, 17, 22, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-subtle);
     position: sticky;
-    top:0;
+    top: 0;
     z-index: 100;
 }
+.brand-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+.brand-title {
+    font-size: 1.3rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    background: linear-gradient(135deg, #c084fc, #38bdf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.brand-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border-radius: 4px;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+}
+nav {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
 nav a {
-    color:#00e5ff;
-    text-decoration:none;
-    font-weight:bold;
-    margin:0 10px;
-    transition: color 0.3s;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: color 0.2s;
 }
-nav a:hover {
-    color:#ff00cc;
-    text-shadow: 0 0 10px #ff00cc;
+nav a:hover, nav a.active {
+    color: #fff;
 }
-h1,h2,h3 { margin:1rem 0; }
-h1 { font-size:3rem; background: linear-gradient(90deg,#6200ea,#00b0ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-h2 { font-size:2rem; color:#00b0ff; }
-section { padding:2rem; max-width:1000px; margin:0 auto; }
-.card {
-    background: rgba(26,26,26,0.85);
-    padding:1rem 2rem;
-    margin:1rem 0;
-    border-radius:10px;
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-.card:hover { transform: translateY(-5px); box-shadow:0 0 20px #6200ea; }
-button { padding:10px 20px; border:none; border-radius:8px; cursor:pointer; background:#6200ea; color:white; font-weight:bold; transition:0.3s; }
-button:hover { background:#ff00cc; }
-</style>
 
+main {
+    flex: 1;
+    max-width: 960px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+}
+
+.hero {
+    text-align: center;
+    margin-bottom: 3.5rem;
+}
+.hero h1 {
+    font-size: 3.2rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.8rem;
+    background: linear-gradient(135deg, #c084fc 0%, #a855f7 40%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.hero p {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-bottom: 3rem;
+}
+
+.release-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 28px;
+    transition: all 0.25s ease;
+}
+.release-card:hover {
+    border-color: var(--border-hover);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+.release-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.release-tag {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.release-date {
+    font-size: 12.5px;
+    color: var(--text-dim);
+    background: rgba(255, 255, 255, 0.06);
+    padding: 4px 10px;
+    border-radius: 9999px;
+}
+.release-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.release-list li {
+    font-size: 14px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.5;
+}
+.release-list li::before {
+    content: "•";
+    color: var(--primary);
+    font-weight: bold;
+    font-size: 18px;
+    line-height: 1;
+}
+
+/* Footer */
+footer {
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-subtle);
+    padding: 2.5rem 2rem 1.5rem 2rem;
+    margin-top: auto;
+}
+.footer-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1.5fr;
+    gap: 30px;
+}
+@media (max-width: 768px) {
+    .footer-inner { grid-template-columns: 1fr; }
+}
+.footer-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 8px;
+}
+.footer-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+.footer-copy {
+    font-size: 12px;
+    color: #71717a;
+}
+.footer-heading {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+}
+.footer-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.footer-nav a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 13px;
+    transition: color 0.2s;
+}
+.footer-nav a:hover { color: #fff; }
+.footer-contacts {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.contact-pill {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.contact-pill:hover { color: var(--accent); }
+</style>
 </head>
 <body>
+
 <header>
-<h1>NeoBrowser Updates</h1>
+    <a href="/site/home.neo/" class="brand-wrap">
+        <span class="brand-title">NEOBROWSER</span>
+        <span class="brand-badge">OFFICIAL</span>
+    </a>
+    <nav>
+        <a href="/site/home.neo/">Home</a>
+        <a href="/site/about.neo/">About</a>
+        <a href="/site/app.neo/">Download</a>
+        <a href="/site/pricing.neo/">Pricing</a>
+        <a href="/site/update.neo/" class="active">Changelog</a>
+        <a href="/site/privacy.neo/">Privacy</a>
+        <a href="/site/contact.neo/">Contact</a>
+    </nav>
 </header>
 
-<section>
-<div class="card animated">
-<p>NeoBrowser now runs like a beast 💀💀💀, doesn’t give a single fck about your furry search history, and can handle games, videos, audio, and even your sketchy localhost Flask sites(maybe cuz testing and things are going (maybe though cuz im lazy af💀💀💀💀💀)) 😎</p>
-<h2>Latest Updates</h2>
-<ul>
-         <li>Spent 4 hours making NeoBrowser completely decentralized 🔥(yeah truly decentralized not capping like last time lol💀)</li>
-    <li>No more rebuilding app after server restart and beacause it was a goddamn pain in the ass 💀 — now it fetches the latest server URL in real-time from our hosted JSON at "https://neobrowser-backend.github.io/key/index.json"</a>:
-        <pre>{
-  "GLOBAL_SERVER_URL": "https://sci-daisy-horizontal-chargers.trycloudflare.com"
-}</pre>
-    </li>
-    <li>App build now available on appneo.neo</li>
-    <li>After restarting the server, just push a small change in the JSON and everything works instantly — total realtime updates(yeah 2min wait is realtime) 💀💀💀💀</li>
-    <li>Fixed annoying bugs and improved stability — searching and loading sites now completely reliable ✅</li>
-    <li>Some bugs still remain bug report at dwipbiswas@yahoo.com example of a remaining bug- http://127.0.0.1:5000/status or any /status call still shows the old link doesnt update</li>
-     <li>Windows app build coming soon</li>
-</ul>
+<main>
+    <div class="hero">
+        <h1>Changelog &amp; Release History</h1>
+        <p>Continuous evolution of the NeoBrowser decentralized engine, registry, and application runtime.</p>
+    </div>
 
-<h2>Previous Updates</h2>
-<ul>
-    <li>Wasted 5+ hours to add online accessibility; now runs on a single centralized server — world scale, no local needed</li>
-    <li>Added server status check at <code>localhost:&lt;port&gt;/status</code> — try it on a normal browser</li>
-    <li>Added connection check & debug mode (press Ctrl+Shift+D)</li>
-    <li>Automatic update support — no need to close and restart browser</li>
-    <li>Browser AppImage for linux produced</li>
-    <li>Optimized webview load and error handling</li>
-    <li>Refactored search and global fallback logic</li>
-    <li>Added 30 websites (games made out of HTML, CSS, JS)</li>
-    <li>Started to try out browser function with websites with Python backend (testing)</li>
-    <li>Started to try out the browser to test its video playing capabilities (pass)</li>
-    <li>Confirmed images can be used in websites/graphics</li>
-    <li>Added 1 more directory called sites</li>
-    <li>Moved all websites to their specific folders</li>
-    <li>Added external Chromium browser (no Chromium or shits in the actual NeoBrowser though; called external browser)</li>
-    <li>Added troll pricing & privacy policies</li>
-    <li>Fixed webview and search issues</li>
-    <li>Struggled 3 hours to fix webcontent display problem 😭</li>
-    <li>Created NeoBrowser</li>
-</ul>
-</ul>
-</div>
-</section>
+    <div class="timeline">
+        <!-- v2.2.0 Latest -->
+        <div class="release-card" style="border-color: rgba(139, 92, 246, 0.4); box-shadow: 0 0 25px rgba(139, 92, 246, 0.15);">
+            <div class="release-header">
+                <div class="release-tag">
+                    <span style="color: #c084fc;">v2.2.0</span>
+                    <span style="font-size: 12px; padding: 2px 8px; border-radius: 4px; background: rgba(34, 197, 94, 0.15); color: #22c55e;">Latest Release</span>
+                </div>
+                <span class="release-date">2026 Updates</span>
+            </div>
+            <ul class="release-list">
+                <li><strong>NeoSearch Engine Portal</strong>: Google-style homepage with live autocomplete, keyboard navigation (Ctrl+K, /), and direct Google Web fallback.</li>
+                <li><strong>All 45 Sites Operational (100%)</strong>: Resolved typing game directory pathing and created <em>The Cube</em> (3D interactive rotating WebGL/CSS experience).</li>
+                <li><strong>4-Site Random Discover Grid</strong>: Clean hero presentation showing 4 randomized featured sites on load with a 1-click "🎲 Roll 4 New" shuffle button.</li>
+                <li><strong>Full Browser Chrome Controls</strong>: Integrated Back, Forward, Reload, and Home buttons interfacing directly with guest webviews.</li>
+                <li><strong>Vercel Serverless Cloud Deployment</strong>: Zero-downtime global server handling all API endpoints, health checks, and asset delivery.</li>
+            </ul>
+        </div>
+
+        <!-- v2.0.0 -->
+        <div class="release-card">
+            <div class="release-header">
+                <div class="release-tag">v2.0.0</div>
+                <span class="release-date">Decentralization &amp; Architecture</span>
+            </div>
+            <ul class="release-list">
+                <li>Dynamic server URL discovery with automatic fallback.</li>
+                <li>Added support for 30+ interactive HTML5/CSS/JS arcade games in registry.</li>
+                <li>Implemented unified <code>fetch://</code> custom protocol resolver.</li>
+                <li>Hot reload developer mode powered by <code>electronmon</code>.</li>
+            </ul>
+        </div>
+
+        <!-- v1.0.0 -->
+        <div class="release-card">
+            <div class="release-header">
+                <div class="release-tag">v1.0.0</div>
+                <span class="release-date">Genesis Release</span>
+            </div>
+            <ul class="release-list">
+                <li>Initial release of NeoBrowser with basic registry mapping and local sandbox rendering.</li>
+                <li>Added troll pricing, privacy policies, and early official portals.</li>
+            </ul>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <div class="footer-inner">
+        <div class="footer-col">
+            <div class="footer-title">NeoBrowser</div>
+            <p class="footer-desc">The lightweight, decentralized web browser and application runtime for .neo domains.</p>
+            <p class="footer-copy">© 2026 NeoBrowser. Built by dwip-the-dev.</p>
+        </div>
+        <div class="footer-col">
+            <div class="footer-heading">Navigation</div>
+            <div class="footer-nav">
+                <a href="/site/home.neo/">Home</a>
+                <a href="/site/about.neo/">About</a>
+                <a href="/site/app.neo/">Download App</a>
+                <a href="/site/update.neo/">Updates &amp; Changelog</a>
+                <a href="/site/pricing.neo/">Pricing</a>
+                <a href="/site/privacy.neo/">Privacy Policy</a>
+            </div>
+        </div>
+        <div class="footer-col">
+            <div class="footer-heading">Connect &amp; Support</div>
+            <div class="footer-contacts">
+                <a href="mailto:dwipbiswas@yahoo.com" class="contact-pill">✉ dwipbiswas@yahoo.com</a>
+                <a href="https://t.me/dwip_thedev" target="_blank" class="contact-pill">✈ Telegram: @dwip_thedev</a>
+                <a href="https://github.com/dwip-the-dev/neo-browser" target="_blank" class="contact-pill">★ GitHub: dwip-the-dev</a>
+                <a href="https://neobrowser-bcknd.vercel.app" target="_blank" class="contact-pill">🟢 Server: Vercel Cloud</a>
+            </div>
+        </div>
+    </div>
+</footer>
 </body>
 </html>

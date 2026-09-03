@@ -194,20 +194,102 @@
                 grid-template-columns: 1fr;
             }
         }
+        .top-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            background: rgba(17, 17, 22, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        .top-nav a.nav-brand {
+            font-size: 1.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #c084fc, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        .nav-links {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .nav-links a {
+            color: #a1a1aa;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover, .nav-links a.active {
+            color: #fff;
+        }
+
+        /* Unified Footer */
+        .official-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 2.5rem 0 1rem 0;
+            margin-top: 3rem;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1.5fr;
+            gap: 30px;
+        }
+        @media (max-width: 768px) {
+            .official-footer { grid-template-columns: 1fr; }
+        }
+        .footer-heading {
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+        .footer-nav, .footer-contacts {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .footer-nav a, .footer-contacts a {
+            color: #a1a1aa;
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+        .footer-nav a:hover, .footer-contacts a:hover {
+            color: #38bdf8;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <nav class="top-nav">
+            <a href="/site/home.neo/" class="nav-brand">NEOBROWSER</a>
+            <div class="nav-links">
+                <a href="/site/home.neo/">Home</a>
+                <a href="/site/about.neo/" class="active">About</a>
+                <a href="/site/app.neo/">Download</a>
+                <a href="/site/pricing.neo/">Pricing</a>
+                <a href="/site/update.neo/">Changelog</a>
+                <a href="/site/privacy.neo/">Privacy</a>
+                <a href="/site/contact.neo/">Contact</a>
+            </div>
+        </nav>
+
         <header>
             <h1>NEOBROWSER</h1>
-            <p class="tagline">A custom lightweight local web browser built with Python, PyWebView and Tkinter</p>
-            <p>Explore .neo domains and fetch:// URLs with a fast, responsive, and modular browsing experience</p>
+            <p class="tagline">Decentralized Web Browser &amp; Runtime Built on Electron and Cloud Serverless</p>
+            <p>Explore 45+ .neo domains and fetch:// URLs with a fast, responsive, and sandboxed browsing experience</p>
         </header>
         
         <section>
             <h2>What is NeoBrowser?</h2>
-            <p>NeoBrowser is a custom lightweight local web browser built in Python using PyWebView and Tkinter, designed to explore <span class="highlight">.neo domains</span> and <span class="highlight">fetch:// URLs</span> stored in a local registry.</p>
-            <p>It combines a native GUI interface with an embedded browser engine, providing a fast, responsive, and modular browsing experience without relying on heavy browsers.</p>
+            <p>NeoBrowser is a privacy-first decentralized web browser built on Electron with a high-performance Python serverless backend on Vercel, designed to resolve <span class="highlight">.neo domains</span> and <span class="highlight">fetch:// URLs</span> directly from a global network registry.</p>
+            <p>It combines a modern desktop UI with an integrated search engine and sandboxed runtime, providing a fast, zero-tracking browsing experience with 45 pre-indexed decentralized applications and arcade games.</p>
         </section>
         
         <section>
@@ -293,9 +375,31 @@
         </section>
     </div>
     
-    <footer>
-        <p>Built with passion and probably too much caffeine</p>
-        <p>NeoBrowser - Lightweight browsing, heavyweight experience</p>
+    <footer class="official-footer">
+        <div class="footer-col">
+            <div class="footer-heading">NeoBrowser</div>
+            <p style="font-size: 13px; color: #a1a1aa; margin-bottom: 8px;">Lightweight, sandboxed, decentralized desktop browser built for privacy.</p>
+            <p style="font-size: 12px; color: #71717a;">© 2026 NeoBrowser. Built by dwip-the-dev.</p>
+        </div>
+        <div class="footer-col">
+            <div class="footer-heading">Quick Links</div>
+            <div class="footer-nav">
+                <a href="/site/home.neo/">Home Portal</a>
+                <a href="/site/app.neo/">Download App</a>
+                <a href="/site/pricing.neo/">Pricing</a>
+                <a href="/site/update.neo/">Changelog</a>
+                <a href="/site/privacy.neo/">Privacy Policy</a>
+            </div>
+        </div>
+        <div class="footer-col">
+            <div class="footer-heading">Community &amp; Contact</div>
+            <div class="footer-contacts">
+                <a href="mailto:dwipbiswas@yahoo.com">✉ dwipbiswas@yahoo.com</a>
+                <a href="https://t.me/dwip_thedev" target="_blank">✈ Telegram: @dwip_thedev</a>
+                <a href="https://github.com/dwip-the-dev/neo-browser" target="_blank">★ GitHub: dwip-the-dev</a>
+                <a href="https://neobrowser-bcknd.vercel.app" target="_blank">🟢 Live Server: Vercel</a>
+            </div>
+        </div>
     </footer>
 
     <script>

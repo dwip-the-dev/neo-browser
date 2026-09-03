@@ -26,6 +26,43 @@
         overflow-x: hidden;
     }
     
+    .top-nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.5rem;
+        background: rgba(17, 17, 22, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        width: 100%;
+        max-width: 800px;
+    }
+    .top-nav a.nav-brand {
+        font-size: 1.2rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #c084fc, #38bdf8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-decoration: none;
+    }
+    .nav-links {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+    .nav-links a {
+        color: #a1a1aa;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active {
+        color: #fff;
+    }
+
     .container {
         max-width: 800px;
         width: 100%;
@@ -258,6 +295,19 @@
     <!-- Matrix rain background -->
     <canvas class="matrix-rain" id="matrixRain"></canvas>
 
+    <nav class="top-nav">
+        <a href="/site/home.neo/" class="nav-brand">NEOBROWSER</a>
+        <div class="nav-links">
+            <a href="/site/home.neo/">Home</a>
+            <a href="/site/about.neo/">About</a>
+            <a href="/site/app.neo/" class="active">Download</a>
+            <a href="/site/pricing.neo/">Pricing</a>
+            <a href="/site/update.neo/">Changelog</a>
+            <a href="/site/privacy.neo/">Privacy</a>
+            <a href="/site/contact.neo/">Contact</a>
+        </div>
+    </nav>
+
     <div class="container">
         <h1>NEOBROWSER</h1>
         <p class="subtitle">Download the ultimate browsing experience for your Linux system. Because regular browsers are for normies.</p>
@@ -267,83 +317,45 @@
                 <div class="app-icon">N</div>
                 <div class="app-details">
                     <div class="app-name">NeoBrowser</div>
-                    <div class="app-version">Version 7.3.2 | AppImage | 87.5 MB</div>
+                    <div class="app-version">Version 2.2.0 | Linux / Desktop | 64-bit</div>
                 </div>
             </div>
             
-            <button id="downloadBtn" class="download-btn">DOWNLOAD APPIMAGE</button>
-            
-            <p class="file-info">SHA256: a1b2c3d4e5f6... | Compatible with 64-bit Linux systems</p>
+            <button class="download-btn" id="downloadBtn">
+                <span class="btn-text">Download Latest App Release</span>
+            </button>
         </div>
         
-        <div class="features">
+        <div class="features-grid">
             <div class="feature">
-                <h3>Blazing Fast</h3>
-                <p>Faster than your ex moving on</p>
+                <h3>Decentralized</h3>
+                <p>Loads 45+ .neo sites with zero external tracking.</p>
             </div>
             <div class="feature">
-                <h3>Privacy Focused</h3>
-                <p>We don't sell your data (because nobody would buy it anyway)</p>
+                <h3>Lightweight</h3>
+                <p>Minimal RAM and CPU footprint on Linux desktop.</p>
             </div>
             <div class="feature">
-                <h3>Ad Free</h3>
-                <p>No ads, just like your dating profile</p>
+                <h3>Open Source</h3>
+                <p>100% transparent codebase hosted on GitHub.</p>
             </div>
         </div>
-        
-        <div class="cursed-section">
-            <h2 class="cursed-title">Cursed Jokes While You Wait</h2>
-            
-            <div class="joke">
-                <p>Why do Java developers wear glasses?</p>
-                <p class="punchline">Because they can't C#.</p>
-            </div>
-            
-            <div class="joke">
-                <p>How many programmers does it take to change a light bulb?</p>
-                <p class="punchline">None. It's a hardware problem.</p>
-            </div>
-            
-            <div class="joke">
-                <p>Why do programmers prefer dark mode?</p>
-                <p class="punchline">Because light attracts bugs.</p>
-            </div>
-            
-            <div class="joke">
-                <p>What's the object-oriented way to become wealthy?</p>
-                <p class="punchline">Inheritance.</p>
-            </div>
-        </div>
-        
+
         <div class="disclaimer">
-            <p><strong>Warning:</strong> Using NeoBrowser may cause increased productivity, heightened sense of privacy, and occasional reality distortion. Side effects include judging other browsers and developing a superiority complex.</p>
+            <p><strong>Notice:</strong> NeoBrowser is privacy-first by design. No analytics, no account requirements, and zero behavioral telemetry.</p>
         </div>
         
-        <footer>
-            <p>© 2023 NeoBrowser | Because the mainstream is basic</p>
-            <p>Questions? Concerns? Existential crises? <a href="#">Contact our support (if we had any)</a></p>
+        <footer style="margin-top: 50px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 24px;">
+            <p style="font-size: 14px; color: #fff; margin-bottom: 6px;">© 2026 NeoBrowser | Built by dwip-the-dev</p>
+            <p style="font-size: 13px; color: #a1a1aa; margin-bottom: 12px;">Support &amp; Community: <a href="mailto:dwipbiswas@yahoo.com">dwipbiswas@yahoo.com</a> • <a href="https://t.me/dwip_thedev" target="_blank">Telegram: @dwip_thedev</a></p>
+            <p style="font-size: 12px; color: #666;"><a href="/site/home.neo/">Home</a> • <a href="/site/about.neo/">About</a> • <a href="/site/privacy.neo/">Privacy</a> • <a href="/site/contact.neo/">Contact</a> • <a href="https://github.com/dwip-the-dev/neo-browser" target="_blank">GitHub</a></p>
         </footer>
     </div>
     
-    <a id="downloadLink" style="display: none;"></a>
-
     <script>
         const downloadBtn = document.getElementById('downloadBtn');
-        const downloadLink = document.getElementById('downloadLink');
-        
-        // For demo purposes, we'll just show an alert
-        // In a real scenario, this would point to the actual file
         downloadBtn.addEventListener('click', () => {
-            alert("In a real implementation, this would download the NeoBrowser AppImage file.\nFor now, just imagine you're downloading something awesome.");
-            
-            // This is what the actual implementation would look like:
-            /*
-            const url = "https://example.com/path/to/NeoBrowser-7.3.2.AppImage";
-            downloadLink.href = url;
-            downloadLink.download = "NeoBrowser-7.3.2.AppImage";
-            downloadLink.click();
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-            */
+            window.open("https://github.com/dwip-the-dev/neo-browser", "_blank");
         });
         
         // Simple matrix rain effect

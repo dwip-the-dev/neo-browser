@@ -3,69 +3,373 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NeoBrowser - Contact</title>
+<title>NeoBrowser - Contact &amp; Community</title>
 <style>
-body {
-    margin:0;
-    padding:0;
-    font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg,#0b0b0b,#1a0033);
-    color: #fff;
+:root {
+    --bg-base: #09090b;
+    --bg-surface: #111116;
+    --bg-surface-elevated: #181822;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-hover: rgba(168, 85, 247, 0.4);
+    --text-main: #f4f4f5;
+    --text-muted: #a1a1aa;
+    --primary: #8b5cf6;
+    --accent: #38bdf8;
+    --success: #22c55e;
 }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(circle at 50% 10%, rgba(139, 92, 246, 0.15) 0%, transparent 60%), var(--bg-base);
+    color: var(--text-main);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
 header {
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:1rem 2rem;
-    background: rgba(10,10,10,0.85);
-    box-shadow:0 4px 20px rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2.5rem;
+    background: rgba(17, 17, 22, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-subtle);
     position: sticky;
-    top:0;
+    top: 0;
     z-index: 100;
 }
+.brand-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+.brand-title {
+    font-size: 1.3rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    background: linear-gradient(135deg, #c084fc, #38bdf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.brand-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border-radius: 4px;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+}
+nav {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
 nav a {
-    color:#00e5ff;
-    text-decoration:none;
-    font-weight:bold;
-    margin:0 10px;
-    transition: color 0.3s;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: color 0.2s;
 }
-nav a:hover {
-    color:#ff00cc;
-    text-shadow: 0 0 10px #ff00cc;
+nav a:hover, nav a.active {
+    color: #fff;
 }
-h1,h2,h3 { margin:1rem 0; }
-h1 { font-size:3rem; background: linear-gradient(90deg,#6200ea,#00b0ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-h2 { font-size:2rem; color:#00b0ff; }
-section { padding:2rem; max-width:1000px; margin:0 auto; }
-.card {
-    background: rgba(26,26,26,0.85);
-    padding:1rem 2rem;
-    margin:1rem 0;
-    border-radius:10px;
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-.card:hover { transform: translateY(-5px); box-shadow:0 0 20px #6200ea; }
-button { padding:10px 20px; border:none; border-radius:8px; cursor:pointer; background:#6200ea; color:white; font-weight:bold; transition:0.3s; }
-button:hover { background:#ff00cc; }
-</style>
 
+main {
+    flex: 1;
+    max-width: 960px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+}
+
+.hero {
+    text-align: center;
+    margin-bottom: 3.5rem;
+}
+.hero h1 {
+    font-size: 3rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.8rem;
+    background: linear-gradient(135deg, #c084fc 0%, #a855f7 40%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.hero p {
+    font-size: 1.15rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 3rem;
+}
+
+.contact-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: all 0.25s ease;
+}
+.contact-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.card-icon {
+    font-size: 24px;
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.card-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #fff;
+}
+.card-desc {
+    font-size: 13.5px;
+    color: var(--text-muted);
+}
+.card-link-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-surface-elevated);
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border-subtle);
+    font-family: monospace;
+    font-size: 13.5px;
+    color: #38bdf8;
+    word-break: break-all;
+}
+.copy-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: 0.2s;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+.copy-btn:hover {
+    background: var(--primary);
+}
+
+/* Footer */
+footer {
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-subtle);
+    padding: 2.5rem 2rem 1.5rem 2rem;
+    margin-top: auto;
+}
+.footer-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1.5fr;
+    gap: 30px;
+}
+@media (max-width: 768px) {
+    .footer-inner { grid-template-columns: 1fr; }
+}
+.footer-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 8px;
+}
+.footer-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+.footer-copy {
+    font-size: 12px;
+    color: #71717a;
+}
+.footer-heading {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+}
+.footer-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.footer-nav a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 13px;
+    transition: color 0.2s;
+}
+.footer-nav a:hover { color: #fff; }
+.footer-contacts {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.contact-pill {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.contact-pill:hover { color: var(--accent); }
+</style>
 </head>
 <body>
+
 <header>
-<h1>Contact NeoBrowser</h1>
+    <a href="/site/home.neo/" class="brand-wrap">
+        <span class="brand-title">NEOBROWSER</span>
+        <span class="brand-badge">OFFICIAL</span>
+    </a>
+    <nav>
+        <a href="/site/home.neo/">Home</a>
+        <a href="/site/about.neo/">About</a>
+        <a href="/site/app.neo/">Download</a>
+        <a href="/site/pricing.neo/">Pricing</a>
+        <a href="/site/update.neo/">Changelog</a>
+        <a href="/site/privacy.neo/">Privacy</a>
+        <a href="/site/contact.neo/" class="active">Contact</a>
+    </nav>
 </header>
 
-<section>
-<div class="card animated">
-<h2>Email</h2>
-<p>dwipbiswas@yahoo.com</p>
-</div>
+<main>
+    <div class="hero">
+        <h1>Contact NeoBrowser</h1>
+        <p>Get in touch with the core development team, submit decentralized sites to the registry, or report bugs.</p>
+    </div>
 
-<div class="card animated">
-<h2>Telegram</h2>
-<p><a href="https://t.me/dwip_thedev" style="color:#00e5ff;">t.me/dwip_thedev</a></p>
-</div>
-</section>
+    <div class="contact-grid">
+        <!-- Email -->
+        <div class="contact-card">
+            <div class="card-header">
+                <div class="card-icon">✉️</div>
+                <div class="card-title">Official Email</div>
+            </div>
+            <div class="card-desc">For inquiries, bug disclosures, and feedback:</div>
+            <div class="card-link-box">
+                <span>dwipbiswas@yahoo.com</span>
+                <button class="copy-btn" onclick="copyText('dwipbiswas@yahoo.com', this)">Copy</button>
+            </div>
+        </div>
+
+        <!-- Telegram -->
+        <div class="contact-card">
+            <div class="card-header">
+                <div class="card-icon">✈️</div>
+                <div class="card-title">Telegram Chat</div>
+            </div>
+            <div class="card-desc">Direct messaging and developer contact:</div>
+            <div class="card-link-box">
+                <a href="https://t.me/dwip_thedev" target="_blank" style="color: #38bdf8; text-decoration: none;">t.me/dwip_thedev</a>
+                <button class="copy-btn" onclick="copyText('https://t.me/dwip_thedev', this)">Copy</button>
+            </div>
+        </div>
+
+        <!-- GitHub -->
+        <div class="contact-card">
+            <div class="card-header">
+                <div class="card-icon">🐙</div>
+                <div class="card-title">GitHub Repository</div>
+            </div>
+            <div class="card-desc">Source code, releases, and issue tracking:</div>
+            <div class="card-link-box">
+                <a href="https://github.com/dwip-the-dev/neo-browser" target="_blank" style="color: #38bdf8; text-decoration: none;">github.com/dwip-the-dev</a>
+                <button class="copy-btn" onclick="copyText('https://github.com/dwip-the-dev/neo-browser', this)">Copy</button>
+            </div>
+        </div>
+
+        <!-- Global Server Status -->
+        <div class="contact-card">
+            <div class="card-header">
+                <div class="card-icon">🌐</div>
+                <div class="card-title">Global Network</div>
+            </div>
+            <div class="card-desc">Decentralized Vercel backend routing all 45 sites:</div>
+            <div class="card-link-box">
+                <a href="https://neobrowser-bcknd.vercel.app" target="_blank" style="color: #22c55e; text-decoration: none;">neobrowser-bcknd.vercel.app</a>
+                <button class="copy-btn" onclick="copyText('https://neobrowser-bcknd.vercel.app', this)">Copy</button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <div class="footer-inner">
+        <div class="footer-col">
+            <div class="footer-title">NeoBrowser</div>
+            <p class="footer-desc">The lightweight, decentralized web browser and application runtime for .neo domains.</p>
+            <p class="footer-copy">© 2026 NeoBrowser. Built by dwip-the-dev.</p>
+        </div>
+        <div class="footer-col">
+            <div class="footer-heading">Navigation</div>
+            <div class="footer-nav">
+                <a href="/site/home.neo/">Home</a>
+                <a href="/site/about.neo/">About</a>
+                <a href="/site/app.neo/">Download App</a>
+                <a href="/site/update.neo/">Updates &amp; Changelog</a>
+                <a href="/site/pricing.neo/">Pricing</a>
+                <a href="/site/privacy.neo/">Privacy Policy</a>
+            </div>
+        </div>
+        <div class="footer-col">
+            <div class="footer-heading">Connect &amp; Support</div>
+            <div class="footer-contacts">
+                <a href="mailto:dwipbiswas@yahoo.com" class="contact-pill">✉ dwipbiswas@yahoo.com</a>
+                <a href="https://t.me/dwip_thedev" target="_blank" class="contact-pill">✈ Telegram: @dwip_thedev</a>
+                <a href="https://github.com/dwip-the-dev/neo-browser" target="_blank" class="contact-pill">★ GitHub: dwip-the-dev</a>
+                <a href="https://neobrowser-bcknd.vercel.app" target="_blank" class="contact-pill">🟢 Server: Vercel Cloud</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+function copyText(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = "Copied!";
+        btn.style.background = "#22c55e";
+        setTimeout(() => {
+            btn.textContent = orig;
+            btn.style.background = "";
+        }, 1500);
+    });
+}
+</script>
 </body>
 </html>
