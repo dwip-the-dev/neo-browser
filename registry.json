@@ -27,7 +27,7 @@
     "name": "power test",
     "path": "sites/testing/power_test/index.html"
   },
-   "home.neo": {
+  "home.neo": {
     "name": "home",
     "path": "sites/official/home/index.html"
   },
@@ -178,5 +178,425 @@
   "whack-a-mole.neo": {
     "name": "Whack A Mole",
     "path": "sites/sites/whack-a-mole/index.html"
+  },
+  "speak-no-guess.neo": {
+    "name": "Speak No Guess",
+    "path": "sites/sites/speak-no-guess/index.html"
+  },
+  "download.neo": {
+    "name": "Download",
+    "path": "sites/testing/download/index.html"
+  },
+  "online.neo": {
+    "name": "Online",
+    "path": "sites/testing/online/index.html"
+  },
+  "power_test.neo": {
+    "name": "Power_Test",
+    "path": "sites/testing/power_test/index.html"
+  },
+  "siml-ad-vid.neo": {
+    "name": "Siml Ad Vid",
+    "path": "sites/testing/siml-ad-vid/index.html"
+  },
+  "neural-chat.neo": {
+    "name": "Neural Chat",
+    "path": "sites/ai/neural-chat/index.html"
+  },
+  "prompt-studio.neo": {
+    "name": "Prompt Studio",
+    "path": "sites/ai/prompt-studio/index.html"
+  },
+  "deep-vision.neo": {
+    "name": "Deep Vision",
+    "path": "sites/ai/deep-vision/index.html"
+  },
+  "agent-flow.neo": {
+    "name": "Agent Flow",
+    "path": "sites/ai/agent-flow/index.html"
+  },
+  "audio-synth.neo": {
+    "name": "Audio Synth",
+    "path": "sites/ai/audio-synth/index.html"
+  },
+  "code-copilot.neo": {
+    "name": "Code Copilot",
+    "path": "sites/ai/code-copilot/index.html"
+  },
+  "vector-db.neo": {
+    "name": "Vector Db",
+    "path": "sites/ai/vector-db/index.html"
+  },
+  "model-hub.neo": {
+    "name": "Model Hub",
+    "path": "sites/ai/model-hub/index.html"
+  },
+  "ai-research.neo": {
+    "name": "Ai Research",
+    "path": "sites/ai/ai-research/index.html"
+  },
+  "diffusion-art.neo": {
+    "name": "Diffusion Art",
+    "path": "sites/ai/diffusion-art/index.html"
+  },
+  "regex-lab.neo": {
+    "name": "Regex Lab",
+    "path": "sites/dev/regex-lab/index.html"
+  },
+  "json-formatter.neo": {
+    "name": "Json Formatter",
+    "path": "sites/dev/json-formatter/index.html"
+  },
+  "markdown-studio.neo": {
+    "name": "Markdown Studio",
+    "path": "sites/dev/markdown-studio/index.html"
+  },
+  "git-explorer.neo": {
+    "name": "Git Explorer",
+    "path": "sites/dev/git-explorer/index.html"
+  },
+  "api-tester.neo": {
+    "name": "Api Tester",
+    "path": "sites/dev/api-tester/index.html"
+  },
+  "sql-sandbox.neo": {
+    "name": "Sql Sandbox",
+    "path": "sites/dev/sql-sandbox/index.html"
+  },
+  "diff-checker.neo": {
+    "name": "Diff Checker",
+    "path": "sites/dev/diff-checker/index.html"
+  },
+  "jwt-debugger.neo": {
+    "name": "Jwt Debugger",
+    "path": "sites/dev/jwt-debugger/index.html"
+  },
+  "color-palette.neo": {
+    "name": "Color Palette",
+    "path": "sites/dev/color-palette/index.html"
+  },
+  "cron-builder.neo": {
+    "name": "Cron Builder",
+    "path": "sites/dev/cron-builder/index.html"
+  },
+  "docker-compose.neo": {
+    "name": "Docker Compose",
+    "path": "sites/dev/docker-compose/index.html"
+  },
+  "base64-vault.neo": {
+    "name": "Base64 Vault",
+    "path": "sites/dev/base64-vault/index.html"
+  },
+  "crypto-tracker.neo": {
+    "name": "Crypto Tracker",
+    "path": "sites/finance/crypto-tracker/index.html"
+  },
+  "portfolio-pro.neo": {
+    "name": "Portfolio Pro",
+    "path": "sites/finance/portfolio-pro/index.html"
+  },
+  "expense-tracker.neo": {
+    "name": "Expense Tracker",
+    "path": "sites/finance/expense-tracker/index.html"
+  },
+  "swap-dex.neo": {
+    "name": "Swap Dex",
+    "path": "sites/finance/swap-dex/index.html"
+  },
+  "invoice-gen.neo": {
+    "name": "Invoice Gen",
+    "path": "sites/finance/invoice-gen/index.html"
+  },
+  "tax-calc.neo": {
+    "name": "Tax Calc",
+    "path": "sites/finance/tax-calc/index.html"
+  },
+  "currency-exchange.neo": {
+    "name": "Currency Exchange",
+    "path": "sites/finance/currency-exchange/index.html"
+  },
+  "loan-amortizer.neo": {
+    "name": "Loan Amortizer",
+    "path": "sites/finance/loan-amortizer/index.html"
+  },
+  "compound-interest.neo": {
+    "name": "Compound Interest",
+    "path": "sites/finance/compound-interest/index.html"
+  },
+  "savings-vault.neo": {
+    "name": "Savings Vault",
+    "path": "sites/finance/savings-vault/index.html"
+  },
+  "kanban-board.neo": {
+    "name": "Kanban Board",
+    "path": "sites/productivity/kanban-board/index.html"
+  },
+  "pomodoro-focus.neo": {
+    "name": "Pomodoro Focus",
+    "path": "sites/productivity/pomodoro-focus/index.html"
+  },
+  "habit-forge.neo": {
+    "name": "Habit Forge",
+    "path": "sites/productivity/habit-forge/index.html"
+  },
+  "notes-vault.neo": {
+    "name": "Notes Vault",
+    "path": "sites/productivity/notes-vault/index.html"
+  },
+  "flashcard-brain.neo": {
+    "name": "Flashcard Brain",
+    "path": "sites/productivity/flashcard-brain/index.html"
+  },
+  "mind-map.neo": {
+    "name": "Mind Map",
+    "path": "sites/productivity/mind-map/index.html"
+  },
+  "daily-journal.neo": {
+    "name": "Daily Journal",
+    "path": "sites/productivity/daily-journal/index.html"
+  },
+  "bookmark-hub.neo": {
+    "name": "Bookmark Hub",
+    "path": "sites/productivity/bookmark-hub/index.html"
+  },
+  "resume-architect.neo": {
+    "name": "Resume Architect",
+    "path": "sites/productivity/resume-architect/index.html"
+  },
+  "secure-pass-vault.neo": {
+    "name": "Secure Pass Vault",
+    "path": "sites/productivity/secure-pass-vault/index.html"
+  },
+  "lofi-beats.neo": {
+    "name": "Lofi Beats",
+    "path": "sites/media/lofi-beats/index.html"
+  },
+  "ambient-soundscape.neo": {
+    "name": "Ambient Soundscape",
+    "path": "sites/media/ambient-soundscape/index.html"
+  },
+  "web-synth-808.neo": {
+    "name": "Web Synth 808",
+    "path": "sites/media/web-synth-808/index.html"
+  },
+  "cinema-stream.neo": {
+    "name": "Cinema Stream",
+    "path": "sites/media/cinema-stream/index.html"
+  },
+  "gallery-3d.neo": {
+    "name": "Gallery 3D",
+    "path": "sites/media/gallery-3d/index.html"
+  },
+  "soundboard-fx.neo": {
+    "name": "Soundboard Fx",
+    "path": "sites/media/soundboard-fx/index.html"
+  },
+  "drum-machine.neo": {
+    "name": "Drum Machine",
+    "path": "sites/media/drum-machine/index.html"
+  },
+  "pixel-canvas.neo": {
+    "name": "Pixel Canvas",
+    "path": "sites/media/pixel-canvas/index.html"
+  },
+  "comic-reader.neo": {
+    "name": "Comic Reader",
+    "path": "sites/media/comic-reader/index.html"
+  },
+  "wallpaper-studio.neo": {
+    "name": "Wallpaper Studio",
+    "path": "sites/media/wallpaper-studio/index.html"
+  },
+  "neo-forum.neo": {
+    "name": "Neo Forum",
+    "path": "sites/social/neo-forum/index.html"
+  },
+  "dev-feed.neo": {
+    "name": "Dev Feed",
+    "path": "sites/social/dev-feed/index.html"
+  },
+  "microblog-net.neo": {
+    "name": "Microblog Net",
+    "path": "sites/social/microblog-net/index.html"
+  },
+  "podcast-radio.neo": {
+    "name": "Podcast Radio",
+    "path": "sites/social/podcast-radio/index.html"
+  },
+  "anonymous-drop.neo": {
+    "name": "Anonymous Drop",
+    "path": "sites/social/anonymous-drop/index.html"
+  },
+  "meme-stream.neo": {
+    "name": "Meme Stream",
+    "path": "sites/social/meme-stream/index.html"
+  },
+  "event-radar.neo": {
+    "name": "Event Radar",
+    "path": "sites/social/event-radar/index.html"
+  },
+  "alumni-network.neo": {
+    "name": "Alumni Network",
+    "path": "sites/social/alumni-network/index.html"
+  },
+  "qa-exchange.neo": {
+    "name": "Qa Exchange",
+    "path": "sites/social/qa-exchange/index.html"
+  },
+  "retro-chat-room.neo": {
+    "name": "Retro Chat Room",
+    "path": "sites/social/retro-chat-room/index.html"
+  },
+  "solar-system-3d.neo": {
+    "name": "Solar System 3D",
+    "path": "sites/science/solar-system-3d/index.html"
+  },
+  "periodic-table.neo": {
+    "name": "Periodic Table",
+    "path": "sites/science/periodic-table/index.html"
+  },
+  "mars-rover.neo": {
+    "name": "Mars Rover",
+    "path": "sites/science/mars-rover/index.html"
+  },
+  "orbital-sim.neo": {
+    "name": "Orbital Sim",
+    "path": "sites/science/orbital-sim/index.html"
+  },
+  "deep-sea.neo": {
+    "name": "Deep Sea",
+    "path": "sites/science/deep-sea/index.html"
+  },
+  "weather-radar.neo": {
+    "name": "Weather Radar",
+    "path": "sites/science/weather-radar/index.html"
+  },
+  "earthquake-watch.neo": {
+    "name": "Earthquake Watch",
+    "path": "sites/science/earthquake-watch/index.html"
+  },
+  "quantum-lab.neo": {
+    "name": "Quantum Lab",
+    "path": "sites/science/quantum-lab/index.html"
+  },
+  "gravity-sandbox.neo": {
+    "name": "Gravity Sandbox",
+    "path": "sites/science/gravity-sandbox/index.html"
+  },
+  "constellation-map.neo": {
+    "name": "Constellation Map",
+    "path": "sites/science/constellation-map/index.html"
+  },
+  "threat-map.neo": {
+    "name": "Threat Map",
+    "path": "sites/security/threat-map/index.html"
+  },
+  "cipher-lab.neo": {
+    "name": "Cipher Lab",
+    "path": "sites/security/cipher-lab/index.html"
+  },
+  "hash-cracker.neo": {
+    "name": "Hash Cracker",
+    "path": "sites/security/hash-cracker/index.html"
+  },
+  "dns-inspector.neo": {
+    "name": "Dns Inspector",
+    "path": "sites/security/dns-inspector/index.html"
+  },
+  "ip-radar.neo": {
+    "name": "Ip Radar",
+    "path": "sites/security/ip-radar/index.html"
+  },
+  "port-scanner.neo": {
+    "name": "Port Scanner",
+    "path": "sites/security/port-scanner/index.html"
+  },
+  "ssl-auditor.neo": {
+    "name": "Ssl Auditor",
+    "path": "sites/security/ssl-auditor/index.html"
+  },
+  "steganography.neo": {
+    "name": "Steganography",
+    "path": "sites/security/steganography/index.html"
+  },
+  "key-generator.neo": {
+    "name": "Key Generator",
+    "path": "sites/security/key-generator/index.html"
+  },
+  "data-breach.neo": {
+    "name": "Data Breach",
+    "path": "sites/security/data-breach/index.html"
+  },
+  "neo-mart.neo": {
+    "name": "Neo Mart",
+    "path": "sites/commerce/neo-mart/index.html"
+  },
+  "vintage-threads.neo": {
+    "name": "Vintage Threads",
+    "path": "sites/commerce/vintage-threads/index.html"
+  },
+  "book-nook.neo": {
+    "name": "Book Nook",
+    "path": "sites/commerce/book-nook/index.html"
+  },
+  "gadget-gear.neo": {
+    "name": "Gadget Gear",
+    "path": "sites/commerce/gadget-gear/index.html"
+  },
+  "sneaker-drop.neo": {
+    "name": "Sneaker Drop",
+    "path": "sites/commerce/sneaker-drop/index.html"
+  },
+  "art-bazaar.neo": {
+    "name": "Art Bazaar",
+    "path": "sites/commerce/art-bazaar/index.html"
+  },
+  "coffee-roasters.neo": {
+    "name": "Coffee Roasters",
+    "path": "sites/commerce/coffee-roasters/index.html"
+  },
+  "indie-games.neo": {
+    "name": "Indie Games",
+    "path": "sites/commerce/indie-games/index.html"
+  },
+  "mech-keys.neo": {
+    "name": "Mech Keys",
+    "path": "sites/commerce/mech-keys/index.html"
+  },
+  "solitaire.neo": {
+    "name": "Solitaire",
+    "path": "sites/games/solitaire/index.html"
+  },
+  "wordle-matrix.neo": {
+    "name": "Wordle Matrix",
+    "path": "sites/games/wordle-matrix/index.html"
+  },
+  "chess-master.neo": {
+    "name": "Chess Master",
+    "path": "sites/games/chess-master/index.html"
+  },
+  "sudoku-zen.neo": {
+    "name": "Sudoku Zen",
+    "path": "sites/games/sudoku-zen/index.html"
+  },
+  "blackjack-21.neo": {
+    "name": "Blackjack 21",
+    "path": "sites/games/blackjack-21/index.html"
+  },
+  "space-invaders.neo": {
+    "name": "Space Invaders",
+    "path": "sites/games/space-invaders/index.html"
+  },
+  "pacman-arcade.neo": {
+    "name": "Pacman Arcade",
+    "path": "sites/games/pacman-arcade/index.html"
+  },
+  "doodle-jump.neo": {
+    "name": "Doodle Jump",
+    "path": "sites/games/doodle-jump/index.html"
+  },
+  "tower-defense.neo": {
+    "name": "Tower Defense",
+    "path": "sites/games/tower-defense/index.html"
   }
 }

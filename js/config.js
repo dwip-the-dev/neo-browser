@@ -16,9 +16,17 @@ function getSiteCategory(path) {
     if (!path) return "Games";
     const p = path.toLowerCase();
     if (p.includes("/official/")) return "Official";
-    if (p.includes("test") || p.includes("bench")) return "Testing";
-    if (p.includes("video") || p.includes("audio") || p.includes("media")) return "Media";
-    if (p.includes("tool") || p.includes("calc") || p.includes("generator")) return "Tools";
+    if (p.includes("/ai/")) return "AI";
+    if (p.includes("/dev/")) return "Dev Tools";
+    if (p.includes("/finance/")) return "Finance";
+    if (p.includes("/productivity/")) return "Productivity";
+    if (p.includes("/media/")) return "Media";
+    if (p.includes("/social/")) return "Social";
+    if (p.includes("/science/")) return "Science";
+    if (p.includes("/security/")) return "Security";
+    if (p.includes("/commerce/")) return "Commerce";
+    if (p.includes("/games/") || p.includes("/sites/")) return "Games";
+    if (p.includes("/testing/")) return "Testing";
     return "Games";
 }
 

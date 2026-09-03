@@ -15,10 +15,25 @@ function updateCategoryPillCounts() {
         counts[cat] = (counts[cat] || 0) + 1;
     });
 
+    const icons = {
+        "all": "",
+        "AI": "🤖 ",
+        "Dev Tools": "💻 ",
+        "Finance": "🪙 ",
+        "Productivity": "⚡ ",
+        "Media": "🎬 ",
+        "Social": "💬 ",
+        "Science": "🪐 ",
+        "Security": "🛡️ ",
+        "Commerce": "🛍️ ",
+        "Games": "🎮 ",
+        "Official": "⚡ "
+    };
+
     document.querySelectorAll('.cat-pill').forEach(pill => {
         const cat = pill.getAttribute('data-cat');
         const count = counts[cat] || (cat === "all" ? entries.length : 0);
-        const iconPrefix = cat === "Games" ? "🎮 " : cat === "Official" ? "⚡ " : cat === "Testing" ? "🧪 " : cat === "Media" ? "🎬 " : cat === "Tools" ? "🛠️ " : "";
+        const iconPrefix = icons[cat] || "";
         pill.textContent = `${iconPrefix}${cat === "all" ? "All Sites" : cat} (${count})`;
     });
 }
