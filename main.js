@@ -6,17 +6,32 @@ let GLOBAL_SERVER_URL = null;
 
 // ===== FETCH SERVER URL FROM GITHUB JSON =====
 async function loadServerURL() {
+    const VERCEL_BACKEND = "https://neobrowser-bcknd.vercel.app";
     try {
         const res = await fetch("https://neobrowser-backend.github.io/key/index.json", { cache: "no-store" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         if (!data.GLOBAL_SERVER_URL) throw new Error("Missing GLOBAL_SERVER_URL in JSON");
-        GLOBAL_SERVER_URL = data.GLOBAL_SERVER_URL;
-        console.log("✅ Loaded server URL:", GLOBAL_SERVER_URL);
+
+        let candidate = data.GLOBAL_SERVER_URL;
+        // Verify candidate URL is active; fallback to Vercel if dead
+        try {
+            const check = await fetch(`${candidate}/status`, { cache: "no-store" });
+            if (check.ok) {
+                GLOBAL_SERVER_URL = candidate;
+                console.log("✅ Loaded server URL:", GLOBAL_SERVER_URL);
+                return;
+            }
+        } catch {
+            // unreachable
+        }
+        console.warn(`Configured server ${candidate} unreachable, falling back to ${VERCEL_BACKEND}`);
+        GLOBAL_SERVER_URL = VERCEL_BACKEND;
     } catch (err) {
         console.error("❌ Failed to load server URL:", err.message);
-        GLOBAL_SERVER_URL = "http://localhost:5000"; // fallback for dev
+        GLOBAL_SERVER_URL = VERCEL_BACKEND; // fallback to deployed Vercel backend
     }
+    console.log("✅ Active server URL:", GLOBAL_SERVER_URL);
 }
 
 // ===== FETCH WITH RETRY =====
