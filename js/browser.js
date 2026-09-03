@@ -101,6 +101,12 @@ async function checkServerStatus() {
             serverStatusPill.className = "status-pill";
             statusText.textContent = `${data.entries || Object.keys(REGISTRY).length} Sites Online`;
             serverStatusPill.title = `Connected to Global Server: ${data.server || GLOBAL_SERVER_URL}`;
+            
+            // Auto-update registry if server version changed
+            if (data.version && data.version !== REGISTRY_VERSION) {
+                console.log(`📡 New server registry version detected [${data.version}], syncing dynamically...`);
+                syncRegistryFromServer();
+            }
             return;
         }
         throw new Error("Server not online");

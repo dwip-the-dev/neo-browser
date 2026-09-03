@@ -6,12 +6,33 @@ window.addEventListener('DOMContentLoaded', async () => {
     try {
         const loadedUrl = await ipcRenderer.invoke('get-server-url');
         if (loadedUrl) GLOBAL_SERVER_URL = loadedUrl;
+        await syncRegistryFromServer();
     } catch (err) {
         console.warn("Could not get server URL via IPC:", err);
     }
 
     await checkServerStatus();
     setInterval(checkServerStatus, 20000);
+
+    // Category filter pills
+    document.querySelectorAll('.cat-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+            document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            selectedCategory = pill.getAttribute('data-cat') || 'all';
+            discoverPage = 1;
+            renderDiscoverGrid();
+        });
+    });
+
+    // Load More pagination
+    const btnLoadMore = document.getElementById('btn-discover-load-more');
+    if (btnLoadMore) {
+        btnLoadMore.addEventListener('click', () => {
+            discoverPage++;
+            renderDiscoverGrid();
+        });
+    }
 
     // Elements
     const heroSearchInput = document.getElementById('hero-search-input');
@@ -63,9 +84,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Lucky button
     if (btnLucky) {
         btnLucky.addEventListener('click', () => {
-            const domains = Object.keys(REGISTRY);
-            if (domains.length > 0) {
-                const randomDomain = domains[Math.floor(Math.random() * domains.length)];
+            const entries = Object.keys(REGISTRY);
+            if (entries.length > 0) {
+                const randomDomain = entries[Math.floor(Math.random() * entries.length)];
                 loadNeoDomain(randomDomain);
             }
         });
@@ -74,9 +95,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Google search buttons
     if (btnSearchGoogle) {
         btnSearchGoogle.addEventListener('click', () => {
-            const q = heroSearchInput.value.trim();
-            if (q) {
-                ipcRenderer.send('open-external-browser', `https://www.google.com/search?q=${encodeURIComponent(q)}`);
+            const query = (heroSearchInput ? heroSearchInput.value : "").trim();
+            if (query) {
+                loadWebUrl(`https://www.google.com/search?q=${encodeURIComponent(query)}`);
             } else {
                 ipcRenderer.send('open-neogoogle');
             }
@@ -117,6 +138,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (btnToggleAll) {
         btnToggleAll.addEventListener('click', () => {
             isShowingAll = !isShowingAll;
+            discoverPage = 1;
             renderDiscoverGrid();
         });
     }

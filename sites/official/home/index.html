@@ -30,7 +30,7 @@
         <div class="hero">
             <div class="hero-badge"><img src="/assets/favicons/update.neo.png" width="14" height="14" style="vertical-align: middle; object-fit: contain;"> The Decentralized Web Runtime</div>
             <h1>The Peer-Routed Decentralized Desktop Browser</h1>
-            <p>NeoBrowser is a privacy-first web runtime built for .neo domains, featuring an integrated Google-style search engine, 45 pre-indexed decentralized applications, and sandboxed fetch:// routing.</p>
+            <p>NeoBrowser is a privacy-first web runtime built for .neo domains, featuring an integrated Google-style search engine, <span class="dynamic-site-count">45</span> pre-indexed decentralized applications, and sandboxed fetch:// routing.</p>
             <div class="hero-btns">
                 <a href="/site/app.neo/" class="hero-btn btn-primary"><img src="/assets/favicons/app.neo.png" width="16" height="16" style="vertical-align: middle; margin-right: 6px;"> Download Latest AppImage</a>
                 <a href="/site/about.neo/" class="hero-btn btn-outline"><img src="/assets/favicons/about.neo.png" width="16" height="16" style="vertical-align: middle; margin-right: 6px;"> Explore Architecture</a>
@@ -40,7 +40,7 @@
         <!-- Live Network Stats -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-num">45</div>
+                <div class="stat-num" id="stat-active-sites"><span class="dynamic-site-count">45</span></div>
                 <div class="stat-label">Active .Neo Sites</div>
             </div>
             <div class="stat-card">
@@ -63,7 +63,7 @@
             <div class="feature-card">
                 <div class="feature-icon"><img src="/assets/favicons/google.png" width="28" height="28" style="object-fit: contain;"></div>
                 <h3>NeoSearch Engine v2.2</h3>
-                <p>Google-style search portal with instant autocomplete suggestions across 45 decentralized sites, keyboard shortcuts (Ctrl+K), and Google Web fallback.</p>
+                <p>Google-style search portal with instant autocomplete suggestions across <span class="dynamic-site-count">45</span> decentralized sites, keyboard shortcuts (Ctrl+K), and Google Web fallback.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><img src="/assets/favicons/2048.neo.png" width="28" height="28" style="object-fit: contain;"></div>
@@ -149,5 +149,19 @@
             </div>
         </div>
     </footer>
+
+    <!-- Dynamic Live Statistics Fetcher -->
+    <script>
+        fetch('/status')
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.entries) {
+                    document.querySelectorAll('.dynamic-site-count').forEach(el => {
+                        el.textContent = data.entries;
+                    });
+                }
+            })
+            .catch(err => console.log('Live status fetch:', err));
+    </script>
 </body>
 </html>

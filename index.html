@@ -147,11 +147,29 @@
                         </button>
                         <button class="small-action-btn" id="btn-toggle-all" title="Toggle view all sites">
                             <span class="btn-icon" style="width: 14px; height: 14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></span>
-                            <span id="toggle-all-text">View All (45)</span>
+                            <span id="toggle-all-text">View All</span>
                         </button>
                     </div>
                 </div>
+                
+                <!-- Dynamic Category Filters (Visible in View All mode) -->
+                <div class="category-filters" id="category-filters" style="display: none;">
+                    <button class="cat-pill active" data-cat="all">All Sites</button>
+                    <button class="cat-pill" data-cat="Games">🎮 Games</button>
+                    <button class="cat-pill" data-cat="Official">⚡ Official</button>
+                    <button class="cat-pill" data-cat="Testing">🧪 Testing</button>
+                    <button class="cat-pill" data-cat="Media">🎬 Media</button>
+                    <button class="cat-pill" data-cat="Tools">🛠️ Tools</button>
+                </div>
+
                 <div class="discover-grid" id="discover-grid"></div>
+
+                <!-- Load More pagination for large registries -->
+                <div id="discover-load-more-wrap" style="display: none; text-align: center; margin-top: 24px; width: 100%;">
+                    <button class="action-btn btn-secondary" id="btn-discover-load-more" style="margin: 0 auto;">
+                        <span>Load More Sites</span>
+                    </button>
+                </div>
             </div>
 
             <!-- SEARCH FOOTER -->
