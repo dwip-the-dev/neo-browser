@@ -53,6 +53,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const btnHome = document.getElementById('btn-home');
     const brandBtn = document.getElementById('brand-btn');
     const btnGoogleWeb = document.getElementById('btn-google-web');
+    const btnP2pShare = document.getElementById('btn-p2p-share');
 
     const webview = document.getElementById('webview');
     const webviewContainer = document.getElementById('webview-container');
@@ -195,6 +196,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
     if (btnHome) btnHome.addEventListener('click', () => showHomeView());
     if (brandBtn) brandBtn.addEventListener('click', () => showHomeView());
+    if (btnP2pShare) btnP2pShare.addEventListener('click', () => loadNeoDomain('share.neo'));
 
     // Webview Lifecycle Events
     if (webview) {

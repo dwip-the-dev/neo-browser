@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoShare — Ephemeral P2P Decentralized Transfer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+        <div class="header-inner">
+            <div class="brand">
+                <span class="brand-icon">📡</span>
+                <span class="brand-name">NeoShare P2P</span>
+                <span class="brand-badge">Tor + Swarm Mesh</span>
+            </div>
+            <div class="header-right">
+                <span class="network-badge">
+                    <span class="pulse-dot"></span>
+                    <span id="global-status-text">Ephemeral Mesh Ready</span>
+                </span>
+                <a href="/site/home.neo/" class="nav-btn">← Back to Portal</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <!-- Onion Circuit Visualization -->
+        <section class="circuit-banner">
+            <div class="circuit-title">CRYPTOGRAPHIC RENDEZVOUS CIRCUIT</div>
+            <div class="circuit-diagram">
+                <div class="circuit-node active" id="circuit-uploader">
+                    <span class="node-icon">💻</span>
+                    <span class="node-label">Uploader [Seed]</span>
+                    <span class="node-sub" id="circuit-up-state">Local Memory</span>
+                </div>
+                <div class="circuit-line">
+                    <span class="line-flow"></span>
+                    <span class="line-tag">E2E AES-256</span>
+                </div>
+                <div class="circuit-node active">
+                    <span class="node-icon">🧅</span>
+                    <span class="node-label">Neo Rendezvous</span>
+                    <span class="node-sub">Zero-Storage Relay</span>
+                </div>
+                <div class="circuit-line">
+                    <span class="line-flow"></span>
+                    <span class="line-tag">DataStream</span>
+                </div>
+                <div class="circuit-node" id="circuit-downloader">
+                    <span class="node-icon">📥</span>
+                    <span class="node-label">Downloader [Peer]</span>
+                    <span class="node-sub" id="circuit-down-state">Standby</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mode Tabs -->
+        <div class="tab-controls">
+            <button class="tab-btn active" id="tab-btn-upload">
+                <span>📤 Share File (Uploader)</span>
+            </button>
+            <button class="tab-btn" id="tab-btn-download">
+                <span>📥 Receive File (Downloader)</span>
+            </button>
+        </div>
+
+        <!-- Uploader Section -->
+        <section class="mode-view" id="view-upload">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <div>
+                        <h2>Create Ephemeral P2P Stream</h2>
+                        <p class="card-sub">Files are streamed directly from your device memory to peers. Zero server retention.</p>
+                    </div>
+                    <span class="security-tag">🔒 End-to-End Encrypted</span>
+                </div>
+
+                <!-- Dropzone Area -->
+                <div class="dropzone" id="file-dropzone">
+                    <div class="drop-content" id="drop-prompt">
+                        <div class="drop-icon">📁</div>
+                        <h3>Drag &amp; Drop Any File to Seed</h3>
+                        <p>or click to select from your filesystem (documents, media, archives, binaries)</p>
+                        <input type="file" id="file-input" style="display: none;">
+                        <button class="action-btn btn-primary" id="btn-browse-file">Browse Files</button>
+                    </div>
+
+                    <!-- Selected File Preview & Active Seeding -->
+                    <div class="seed-dashboard" id="seed-dashboard" style="display: none;">
+                        <div class="file-meta-row">
+                            <div class="meta-icon">📄</div>
+                            <div class="meta-details">
+                                <div class="file-name" id="seed-filename">document.pdf</div>
+                                <div class="file-specs">
+                                    <span id="seed-filesize">0 KB</span> • 
+                                    <span id="seed-chunks">0 Chunks</span> • 
+                                    <span class="hash-text" id="seed-hash">SHA-256: calculating...</span>
+                                </div>
+                            </div>
+                            <button class="action-btn btn-danger-sm" id="btn-cancel-seed">Stop Seeding</button>
+                        </div>
+
+                        <!-- Unique Transfer Credentials -->
+                        <div class="credentials-box">
+                            <div class="cred-row">
+                                <span class="cred-label">Unique Transfer ID:</span>
+                                <div class="cred-val-wrap">
+                                    <code class="cred-code" id="seed-transfer-id">GENERATING...</code>
+                                    <button class="copy-btn" id="btn-copy-id">Copy ID</button>
+                                </div>
+                            </div>
+                            <div class="cred-row">
+                                <span class="cred-label">Direct Share Link:</span>
+                                <div class="cred-val-wrap">
+                                    <input type="text" class="cred-input" id="seed-share-link" readonly>
+                                    <button class="copy-btn" id="btn-copy-link">Copy Link</button>
+                                </div>
+                            </div>
+                            <div class="cred-row">
+                                <span class="cred-label">Onion Address:</span>
+                                <div class="cred-val-wrap">
+                                    <code class="onion-text" id="seed-onion-addr">...neo-drop.onion</code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Live Telemetry Monitor -->
+                        <div class="telemetry-grid">
+                            <div class="tele-item">
+                                <span class="tele-label">Seeding Status</span>
+                                <span class="tele-val text-green" id="seed-status-val">● Active &amp; Online</span>
+                            </div>
+                            <div class="tele-item">
+                                <span class="tele-label">Upload Speed</span>
+                                <span class="tele-val text-cyan" id="seed-speed-val">0.0 KB/s</span>
+                            </div>
+                            <div class="tele-item">
+                                <span class="tele-label">Connected Peers</span>
+                                <span class="tele-val text-purple" id="seed-peers-val">0 Peers</span>
+                            </div>
+                            <div class="tele-item">
+                                <span class="tele-label">Heartbeat Pulse</span>
+                                <span class="tele-val text-yellow" id="seed-pulse-val">Alive</span>
+                            </div>
+                        </div>
+
+                        <!-- Ephemeral Warning Notice -->
+                        <div class="ephemeral-alert">
+                            <span class="alert-icon">⚠️</span>
+                            <div class="alert-body">
+                                <strong>Ephemeral Liveness Enforcement:</strong>
+                                Keep this tab open while sharing. If you close this tab or disconnect, this Transfer ID and download will <strong>instantly vanish</strong> from the decentralized network.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Downloader Section -->
+        <section class="mode-view" id="view-download" style="display: none;">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <div>
+                        <h2>Receive &amp; Download P2P Stream</h2>
+                        <p class="card-sub">Connect to the active uploader to stream the file straight into your browser.</p>
+                    </div>
+                    <span class="security-tag">⚡ Direct Swarm Stream</span>
+                </div>
+
+                <!-- Input Box -->
+                <div class="lookup-box">
+                    <div class="input-wrap">
+                        <span class="input-icon">🔑</span>
+                        <input type="text" id="download-id-input" class="cyber-input" placeholder="Enter Unique Transfer ID (e.g. NEO-A94F-8X2B)">
+                    </div>
+                    <button class="action-btn btn-primary" id="btn-fetch-meta">Locate Peer</button>
+                </div>
+
+                <!-- Error / Peer Offline Screen -->
+                <div class="offline-banner" id="download-error-box" style="display: none;">
+                    <div class="offline-icon">🚫</div>
+                    <div class="offline-content">
+                        <h3 id="error-title">Uploader Offline / Vanished</h3>
+                        <p id="error-desc">This transfer session is no longer available. In accordance with zero-storage ephemeral protocols, when the uploader disconnects the transfer ID is immediately purged.</p>
+                    </div>
+                </div>
+
+                <!-- Active Transfer Dashboard -->
+                <div class="download-dashboard" id="download-dashboard" style="display: none;">
+                    <div class="file-meta-row">
+                        <div class="meta-icon">📦</div>
+                        <div class="meta-details">
+                            <div class="file-name" id="dl-filename">file.bin</div>
+                            <div class="file-specs">
+                                <span id="dl-filesize">0 KB</span> • 
+                                <span id="dl-chunks">0 Chunks</span> • 
+                                <span class="hash-text" id="dl-hash">SHA-256: Verified</span>
+                            </div>
+                        </div>
+                        <button class="action-btn btn-success" id="btn-start-download">Start P2P Download</button>
+                    </div>
+
+                    <!-- Progress Bar & Speed -->
+                    <div class="progress-section">
+                        <div class="progress-info">
+                            <span id="dl-percent">0%</span>
+                            <span id="dl-speed">0.0 KB/s</span>
+                            <span id="dl-eta">Est: --</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="dl-progress-bar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- BitTorrent Chunk Map -->
+                    <div class="chunk-map-container">
+                        <div class="chunk-map-header">
+                            <span>BitTorrent Swarm Piece Map:</span>
+                            <span id="chunk-counter">0 / 0 Chunks Verified</span>
+                        </div>
+                        <div class="chunk-grid" id="chunk-grid"></div>
+                    </div>
+
+                    <!-- Completed Download Trigger -->
+                    <div class="completed-box" id="completed-box" style="display: none;">
+                        <div class="complete-icon">✅</div>
+                        <div class="complete-text">
+                            <h3>Transfer Verified &amp; Assembled</h3>
+                            <p>All chunks verified with SHA-256 checksum. File ready for local saving.</p>
+                        </div>
+                        <button class="action-btn btn-primary" id="btn-save-file">Save File to Disk</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div class="footer-inner">
+            <span>© 2026 NeoShare. Zero-Knowledge Ephemeral P2P Protocol.</span>
+            <div class="footer-links">
+                <a href="/site/home.neo/">Home</a>
+                <a href="/site/about.neo/">Architecture</a>
+                <a href="/site/privacy.neo/">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -598,5 +598,9 @@
   "tower-defense.neo": {
     "name": "Tower Defense",
     "path": "sites/games/tower-defense/index.html"
+  },
+  "share.neo": {
+    "name": "NeoShare P2P Drop",
+    "path": "sites/official/share/index.html"
   }
 }

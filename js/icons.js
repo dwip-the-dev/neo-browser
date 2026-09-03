@@ -48,6 +48,7 @@ const ICON_STREAM_MAP = {
     "update.neo": "semver.org",
     "privacy.neo": "eff.org",
     "contact.neo": "telegram.org",
+    "share.neo": "bittorrent.com",
     "video.neo": "youtube.com",
     "audio.neo": "spotify.com",
     "onlinetest.neo": "speedtest.net",
