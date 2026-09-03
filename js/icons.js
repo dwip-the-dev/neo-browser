@@ -1,4 +1,4 @@
-// ==================== DYNAMIC FAVICON & VECTOR ICON ENGINE ====================
+// ==================== STREAMING FAVICON & VECTOR ICON ENGINE ====================
 
 const PALETTES = [
     ["#38bdf8", "#818cf8"], // Cyan -> Indigo
@@ -9,9 +9,73 @@ const PALETTES = [
     ["#06b6d4", "#3b82f6"]  // Cyan -> Blue
 ];
 
+// Upstream live domain stream mapping
+const ICON_STREAM_MAP = {
+    "2048.neo": "play2048.co",
+    "flappy-bird.neo": "flappybird.io",
+    "tetris.neo": "tetris.com",
+    "crossy-road.neo": "crossyroad.com",
+    "candy-crush.neo": "king.com",
+    "fruit-slicer.neo": "halfbrick.com",
+    "minesweeper.neo": "minesweeper.online",
+    "typing-game.neo": "monkeytype.com",
+    "the-cube.neo": "rubiks.com",
+    "snake-game.neo": "playsnake.org",
+    "breakout.neo": "atari.com",
+    "tic-tac-toe.neo": "playtictactoe.org",
+    "ping-pong.neo": "ponggame.org",
+    "tower-block.neo": "ketchappgames.com",
+    "whack-a-mole.neo": "arcade.com",
+    "archery.neo": "worldarchery.sport",
+    "connect-four.neo": "coolmathgames.com",
+    "dice-roll.neo": "random.org",
+    "emoji-catch.neo": "emojipedia.org",
+    "hangman.neo": "thewordsearch.com",
+    "insect-catch.neo": "nationalgeographic.com",
+    "keyboard-hero.neo": "pianotiles.org",
+    "maze.neo": "mazegenerator.net",
+    "memory-card.neo": "matchthememory.com",
+    "menja.neo": "ninja.com",
+    "quiz-game.neo": "quizlet.com",
+    "rock-paper-scissor.neo": "wrpsa.com",
+    "shape-clicker.neo": "geometrydash.com",
+    "simon-says.neo": "hasbro.com",
+    "speak-number-guess.neo": "speechify.com",
+    "home.neo": "electronjs.org",
+    "about.neo": "wikipedia.org",
+    "app.neo": "appimage.org",
+    "pricing.neo": "stripe.com",
+    "update.neo": "semver.org",
+    "privacy.neo": "eff.org",
+    "contact.neo": "telegram.org",
+    "video.neo": "youtube.com",
+    "audio.neo": "spotify.com",
+    "onlinetest.neo": "speedtest.net",
+    "powertest.neo": "browserleaks.com",
+    "allsim.neo": "twitch.tv",
+    "download-test.neo": "archive.org",
+    "example.neo": "developer.mozilla.org",
+    "test.neo": "w3.org",
+    "google": "google.com",
+    "github": "github.com",
+    "telegram": "telegram.org",
+    "yahoo": "yahoo.com",
+    "vercel": "vercel.com"
+};
+
 /**
- * Deterministically generates an algorithmic vector SVG badge for any domain.
- * Ensures 100% icon coverage across hundreds of thousands of sites without missing assets.
+ * Streams icons on-demand directly over high-speed global Favicon CDN stream.
+ * ZERO local file downloads or disk bloat.
+ */
+function getStreamingIconUrl(domain) {
+    const clean = (domain || "").replace(/^fetch:\/\//, "").replace(/\/$/, "").toLowerCase();
+    const streamDomain = ICON_STREAM_MAP[clean] || (clean.endsWith('.neo') ? clean.replace(/\.neo$/, ".com") : clean);
+    return `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${streamDomain}&size=64`;
+}
+
+/**
+ * Deterministically streams an algorithmic vector SVG badge for any domain.
+ * Guarantees instant icon rendering for infinite sites.
  */
 function generateAvatarSvg(domain) {
     const raw = (domain || "").replace(/^fetch:\/\//, "").replace(/\.neo$/, "").replace(/[-_]/g, " ").trim();
@@ -40,26 +104,20 @@ function generateAvatarSvg(domain) {
 }
 
 /**
- * Returns dynamic favicon HTML with multi-tiered resilience:
- * Tier 1: Local / Cloud server (/favicon/<domain>)
- * Tier 2: Local cache assets/favicons/<domain>.png
- * Tier 3: Live Google Favicon CDN
- * Tier 4: Algorithmic SVG vector avatar
+ * Returns dynamic streaming favicon <img> element.
+ * Streams on demand over the internet with automatic SVG avatar fallback.
  */
 function getFaviconHtml(domain, altName = "") {
     const clean = (domain || "").replace(/^fetch:\/\//, "").replace(/\/$/, "");
-    const baseUrl = (typeof GLOBAL_SERVER_URL !== "undefined" ? GLOBAL_SERVER_URL : "https://neobrowser-bcknd.vercel.app").replace(/\/+$/, "");
-    const primarySrc = `${baseUrl}/favicon/${clean}`;
-    const localSrc = `assets/favicons/${clean}.png`;
-    const cdnFallback = `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${clean}&size=64`;
+    const streamUrl = getStreamingIconUrl(clean);
     
-    return `<img src="${primarySrc}" class="favicon-img" onerror="this.onerror=function(){ this.onerror=function(){ this.parentElement.innerHTML = generateAvatarSvg('${clean}'); }; this.src='${cdnFallback}'; }; this.src='${localSrc}';" alt="${altName || clean}" loading="lazy">`;
+    return `<img src="${streamUrl}" class="favicon-img" onerror="this.onerror=null; this.parentElement.innerHTML = generateAvatarSvg('${clean}');" alt="${altName || clean}" loading="lazy">`;
 }
 
 /**
- * Returns favicon for external branded services
+ * Streams external service branded favicon
  */
 function getServiceFaviconHtml(serviceName) {
-    const localSrc = `assets/favicons/${serviceName}.png`;
-    return `<img src="${localSrc}" class="favicon-img" alt="${serviceName}" loading="lazy">`;
+    const streamUrl = getStreamingIconUrl(serviceName);
+    return `<img src="${streamUrl}" class="favicon-img" onerror="this.onerror=null; this.parentElement.innerHTML = generateAvatarSvg('${serviceName}');" alt="${serviceName}" loading="lazy">`;
 }
