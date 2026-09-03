@@ -57,19 +57,19 @@ function performSearch(query) {
         const noRes = document.createElement('div');
         noRes.style = "padding: 30px; text-align: center; color: var(--text-muted); background: var(--bg-surface); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);";
         noRes.innerHTML = `
-            <div style="font-size: 32px; margin-bottom: 8px;">🔍</div>
+            <div style="width: 36px; height: 36px; margin: 0 auto 12px auto; color: var(--primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>
             <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">No matching .neo sites found</div>
             <div style="font-size: 13px;">No registered .neo domain matched "${escapeHtml(query)}". Try searching on Google Web below.</div>
         `;
         if (resultsList) resultsList.appendChild(noRes);
     } else {
         results.forEach(({ domain, meta, cat }) => {
-            const icon = SITE_ICONS[domain] || "🌐";
+            const icon = getFaviconHtml(domain, meta.name);
             const card = document.createElement('div');
             card.className = 'serp-card';
             card.innerHTML = `
                 <div class="serp-breadcrumb">
-                    <span>${icon}</span>
+                    ${icon}
                     <span>fetch://${domain}</span>
                     <span style="color: var(--text-dim);">› ${meta.path || 'site'}</span>
                 </div>
@@ -142,7 +142,7 @@ function updateAutocomplete(inputEl) {
     omniboxDropdown.innerHTML = '';
     matches.forEach(({ domain, meta }) => {
         const cat = getSiteCategory(meta.path);
-        const icon = SITE_ICONS[domain] || "🌐";
+        const icon = getFaviconHtml(domain, meta.name);
         const item = document.createElement('div');
         item.className = 'omnibox-item';
         item.innerHTML = `

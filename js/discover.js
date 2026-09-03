@@ -32,7 +32,7 @@ function renderDiscoverGrid() {
 
     displayEntries.forEach(([domain, meta]) => {
         const cat = getSiteCategory(meta.path);
-        const icon = SITE_ICONS[domain] || (cat === "Games" ? "🎮" : cat === "Official" ? "⚡" : "🧪");
+        const icon = getFaviconHtml(domain, meta.name);
         const badgeClass = cat === "Games" ? "game" : cat === "Official" ? "official" : "media";
 
         const card = document.createElement('div');
