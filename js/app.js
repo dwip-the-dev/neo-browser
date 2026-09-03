@@ -187,11 +187,20 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Navigation buttons
-    if (btnBack) btnBack.addEventListener('click', () => { if (webview.canGoBack()) webview.goBack(); });
-    if (btnForward) btnForward.addEventListener('click', () => { if (webview.canGoForward()) webview.goForward(); });
+    function getTargetWebview() {
+        if (typeof getActiveTab === 'function') {
+            const tab = getActiveTab();
+            if (tab && tab.webview) return tab.webview;
+        }
+        return webview;
+    }
+
+    if (btnBack) btnBack.addEventListener('click', () => { const wv = getTargetWebview(); if (wv && wv.canGoBack()) wv.goBack(); });
+    if (btnForward) btnForward.addEventListener('click', () => { const wv = getTargetWebview(); if (wv && wv.canGoForward()) wv.goForward(); });
     if (btnReload) {
         btnReload.addEventListener('click', () => {
-            if (webviewContainer.style.display === 'block') webview.reload();
+            const wv = getTargetWebview();
+            if (webviewContainer.style.display === 'block' && wv) wv.reload();
             else { checkServerStatus(); renderDiscoverGrid(); }
         });
     }

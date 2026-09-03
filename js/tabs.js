@@ -1,5 +1,5 @@
 /**
- * NeoBrowser Tabs, Bookmarks, History & Downloads Management
+ * NeoBrowser Chrome-Style Multi-Tab, Bookmarks, History & Downloads Architecture
  */
 
 let TABS = [];
@@ -8,6 +8,10 @@ let NEXT_TAB_ID = 1;
 
 let BROWSING_HISTORY = [];
 let DOWNLOADS_LIST = [];
+
+function getActiveTab() {
+    return TABS.find(t => t.id === ACTIVE_TAB_ID);
+}
 
 function initTabs() {
     loadStoredHistory();
@@ -68,18 +72,51 @@ function initTabs() {
         });
     }
 
-    // Keyboard Shortcuts
+    // Keyboard Shortcuts (Chrome / Brave Compatible)
     document.addEventListener('keydown', (e) => {
+        // Ctrl+T: New Tab
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 't') {
             e.preventDefault();
             createTab("", "NeoSearch");
-        } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'w') {
+        }
+        // Ctrl+W: Close Tab
+        else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'w') {
             e.preventDefault();
             if (ACTIVE_TAB_ID) closeTab(ACTIVE_TAB_ID);
-        } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') {
+        }
+        // Ctrl+Tab / Ctrl+Shift+Tab: Cycle tabs
+        else if ((e.ctrlKey || e.metaKey) && e.key === 'Tab') {
+            e.preventDefault();
+            if (TABS.length > 1) {
+                const curIdx = TABS.findIndex(t => t.id === ACTIVE_TAB_ID);
+                let nextIdx = e.shiftKey ? curIdx - 1 : curIdx + 1;
+                if (nextIdx >= TABS.length) nextIdx = 0;
+                if (nextIdx < 0) nextIdx = TABS.length - 1;
+                switchTab(TABS[nextIdx].id);
+            }
+        }
+        // Ctrl+1 through Ctrl+8: Jump to Tab N
+        else if ((e.ctrlKey || e.metaKey) && e.key >= '1' && e.key <= '8') {
+            const targetIdx = parseInt(e.key) - 1;
+            if (targetIdx < TABS.length) {
+                e.preventDefault();
+                switchTab(TABS[targetIdx].id);
+            }
+        }
+        // Ctrl+9: Jump to last Tab
+        else if ((e.ctrlKey || e.metaKey) && e.key === '9') {
+            if (TABS.length > 0) {
+                e.preventDefault();
+                switchTab(TABS[TABS.length - 1].id);
+            }
+        }
+        // Ctrl+J: Downloads Drawer
+        else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') {
             e.preventDefault();
             if (dlDrawer) dlDrawer.style.display = dlDrawer.style.display === 'flex' ? 'none' : 'flex';
-        } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'h') {
+        }
+        // Ctrl+H: History Drawer
+        else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'h') {
             e.preventDefault();
             if (histDrawer) histDrawer.style.display = histDrawer.style.display === 'flex' ? 'none' : 'flex';
         }
@@ -98,30 +135,43 @@ function initTabs() {
 
 function createTab(url = "", title = "NeoSearch") {
     const tabId = NEXT_TAB_ID++;
+    const domain = url ? url.replace('fetch://', '').replace(/\/$/, '') : "";
     const newTab = {
         id: tabId,
         url: url,
-        title: title,
-        domain: url ? url.replace('fetch://', '').replace('/', '') : ""
+        title: title || (domain ? domain : "NeoSearch"),
+        domain: domain,
+        webview: null,
+        isLoading: false
     };
     TABS.push(newTab);
     renderTabs();
     switchTab(tabId);
+
+    if (domain) {
+        navigateTab(newTab, domain);
+    }
 }
 
 function closeTab(tabId) {
+    const index = TABS.findIndex(t => t.id === tabId);
+    if (index === -1) return;
+
+    const tabToClose = TABS[index];
+    if (tabToClose.webview) {
+        tabToClose.webview.remove();
+        tabToClose.webview = null;
+    }
+
     if (TABS.length === 1) {
-        // Last tab: reset to home
-        TABS[0].url = "";
-        TABS[0].title = "NeoSearch";
-        TABS[0].domain = "";
+        // Last tab closed -> reset to clean home tab
+        tabToClose.url = "";
+        tabToClose.title = "NeoSearch";
+        tabToClose.domain = "";
         renderTabs();
         showHomeView();
         return;
     }
-
-    const index = TABS.findIndex(t => t.id === tabId);
-    if (index === -1) return;
 
     TABS.splice(index, 1);
     if (ACTIVE_TAB_ID === tabId) {
@@ -136,30 +186,130 @@ function switchTab(tabId) {
     ACTIVE_TAB_ID = tabId;
     renderTabs();
 
-    const tab = TABS.find(t => t.id === tabId);
-    if (!tab) return;
+    const activeTab = getActiveTab();
+    if (!activeTab) return;
 
-    if (!tab.url) {
-        showHomeView();
+    const searchView = document.getElementById('search-view');
+    const webviewContainer = document.getElementById('webview-container');
+    const omniboxInput = document.getElementById('omnibox-input');
+    const protocolText = document.getElementById('protocol-text');
+    const protocolChip = document.getElementById('protocol-chip');
+
+    // Hide all webviews
+    document.querySelectorAll('.tab-webview').forEach(wv => {
+        wv.style.display = 'none';
+    });
+
+    if (!activeTab.domain) {
+        // Home tab
+        currentLoadedDomain = null;
+        if (searchView) searchView.style.display = 'flex';
+        if (webviewContainer) webviewContainer.style.display = 'none';
+        if (omniboxInput) omniboxInput.value = "";
+        if (protocolText) protocolText.textContent = "fetch://";
+        if (protocolChip) protocolChip.style.color = "#38bdf8";
+        updateNavButtons();
     } else {
-        loadNeoDomain(tab.domain);
+        // Site tab
+        currentLoadedDomain = activeTab.domain;
+        if (searchView) searchView.style.display = 'none';
+        if (webviewContainer) webviewContainer.style.display = 'block';
+
+        if (activeTab.webview) {
+            activeTab.webview.style.display = 'flex';
+        } else {
+            navigateTab(activeTab, activeTab.domain);
+        }
+
+        if (omniboxInput) omniboxInput.value = `fetch://${activeTab.domain}/`;
+        if (protocolText) protocolText.textContent = "fetch://";
+        if (protocolChip) protocolChip.style.color = "#38bdf8";
+        updateNavButtons();
     }
 }
 
+function navigateTab(tab, domain) {
+    domain = domain.trim().toLowerCase().replace('fetch://', '').replace(/\/$/, '');
+    tab.domain = domain;
+    tab.url = `fetch://${domain}/`;
+    tab.title = REGISTRY[domain] ? REGISTRY[domain].name : domain;
+    currentLoadedDomain = domain;
+
+    const baseUrl = (GLOBAL_SERVER_URL || "").replace(/\/+$/, '');
+    const targetUrl = `${baseUrl}/site/${domain}/`;
+
+    const webviewContainer = document.getElementById('webview-container');
+    const searchView = document.getElementById('search-view');
+    if (searchView) searchView.style.display = 'none';
+    if (webviewContainer) webviewContainer.style.display = 'block';
+
+    if (!tab.webview) {
+        const wv = document.createElement('webview');
+        wv.id = `webview-tab-${tab.id}`;
+        wv.className = 'tab-webview';
+        wv.src = targetUrl;
+        wv.setAttribute('allowpopups', '');
+        wv.setAttribute('webpreferences', 'allowRunningInsecureContent=true, webSecurity=false');
+        wv.style.width = '100%';
+        wv.style.height = '100%';
+        wv.style.border = 'none';
+
+        // Lifecycle listeners
+        wv.addEventListener('did-start-loading', () => {
+            tab.isLoading = true;
+            showLoading();
+            renderTabs();
+            if (tab.id === ACTIVE_TAB_ID) updateNavButtons();
+        });
+
+        wv.addEventListener('did-stop-loading', () => {
+            tab.isLoading = false;
+            hideLoading();
+            renderTabs();
+            if (tab.id === ACTIVE_TAB_ID) updateNavButtons();
+        });
+
+        wv.addEventListener('page-title-updated', (e) => {
+            if (e.title && !e.title.includes('http') && !e.title.includes('404')) {
+                tab.title = e.title;
+                renderTabs();
+            }
+        });
+
+        wv.addEventListener('did-navigate', (e) => {
+            if (tab.id === ACTIVE_TAB_ID) {
+                updateNavButtons();
+                const omniboxInput = document.getElementById('omnibox-input');
+                if (omniboxInput) omniboxInput.value = `fetch://${tab.domain}/`;
+            }
+        });
+
+        webviewContainer.appendChild(wv);
+        tab.webview = wv;
+    } else {
+        tab.webview.src = targetUrl;
+    }
+
+    tab.webview.style.display = 'flex';
+    renderTabs();
+    recordHistoryItem(domain, tab.title);
+}
+
 function updateActiveTabState(domain, title) {
-    if (!ACTIVE_TAB_ID) return;
-    const tab = TABS.find(t => t.id === ACTIVE_TAB_ID);
+    const tab = getActiveTab();
     if (!tab) return;
 
-    tab.domain = domain;
-    tab.url = domain ? `fetch://${domain}/` : "";
-    tab.title = title || domain || "NeoSearch";
-
-    renderTabs();
-
-    if (domain) {
-        recordHistoryItem(domain, title);
+    if (!domain) {
+        tab.domain = "";
+        tab.url = "";
+        tab.title = "NeoSearch";
+    } else {
+        tab.domain = domain;
+        tab.url = `fetch://${domain}/`;
+        tab.title = title || domain;
+        recordHistoryItem(domain, tab.title);
     }
+    renderTabs();
 }
 
 function renderTabs() {
@@ -167,16 +317,23 @@ function renderTabs() {
     if (!container) return;
 
     container.innerHTML = '';
-    TABS.forEach(tab => {
+    TABS.forEach((tab, index) => {
         const tabEl = document.createElement('div');
-        tabEl.className = `tab ${tab.id === ACTIVE_TAB_ID ? 'active' : ''}`;
+        tabEl.className = `tab ${tab.id === ACTIVE_TAB_ID ? 'active' : ''} ${tab.isLoading ? 'loading' : ''}`;
         
-        const iconHtml = tab.domain ? getFaviconHtml(tab.domain, tab.title) : `<span style="font-size: 13px;">⚡</span>`;
+        let iconHtml;
+        if (tab.isLoading) {
+            iconHtml = `<div class="tab-spinner"></div>`;
+        } else if (tab.domain) {
+            iconHtml = getFaviconHtml(tab.domain, tab.title);
+        } else {
+            iconHtml = `<span style="font-size: 13px;">⚡</span>`;
+        }
 
         tabEl.innerHTML = `
             <div class="tab-icon">${iconHtml}</div>
-            <span class="tab-title">${escapeHtml(tab.title)}</span>
-            <button class="tab-close" title="Close tab (Ctrl+W)">✕</button>
+            <span class="tab-title" title="${escapeHtml(tab.title)}">${escapeHtml(tab.title)}</span>
+            <button class="tab-close" title="Close Tab (Ctrl+W)">✕</button>
         `;
 
         tabEl.addEventListener('click', (e) => {
@@ -194,7 +351,6 @@ function renderTabs() {
 
 function recordHistoryItem(domain, title) {
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    // avoid duplicate consecutive
     if (BROWSING_HISTORY.length > 0 && BROWSING_HISTORY[0].domain === domain) {
         BROWSING_HISTORY[0].time = timeStr;
     } else {
@@ -203,7 +359,7 @@ function recordHistoryItem(domain, title) {
             title: title || domain,
             time: timeStr
         });
-        if (BROWSING_HISTORY.length > 50) BROWSING_HISTORY.pop();
+        if (BROWSING_HISTORY.length > 60) BROWSING_HISTORY.pop();
     }
     try {
         localStorage.setItem('neo_history', JSON.stringify(BROWSING_HISTORY));

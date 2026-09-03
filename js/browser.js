@@ -43,23 +43,26 @@ function loadNeoDomain(domain) {
     const omniboxInput = document.getElementById('omnibox-input');
     const protocolText = document.getElementById('protocol-text');
     const protocolChip = document.getElementById('protocol-chip');
-    const webview = document.getElementById('webview');
 
     if (omniboxInput) omniboxInput.value = `fetch://${domain}`;
     if (protocolText) protocolText.textContent = "fetch://";
     if (protocolChip) protocolChip.style.color = "#38bdf8";
 
+    if (typeof navigateTab === 'function' && typeof getActiveTab === 'function') {
+        const curTab = getActiveTab();
+        if (curTab) {
+            navigateTab(curTab, domain);
+            return;
+        }
+    }
+
     const baseUrl = (GLOBAL_SERVER_URL || "").replace(/\/+$/, '');
     const targetUrl = `${baseUrl}/site/${domain}/`;
     console.log(`🚀 Loading .neo site [${domain}] -> ${targetUrl}`);
-    
-    if (typeof updateActiveTabState === 'function') {
-        const title = REGISTRY[domain] ? REGISTRY[domain].name : domain;
-        updateActiveTabState(domain, title);
-    }
 
     showWebview();
     showLoading();
+    const webview = document.getElementById('webview');
     if (webview) webview.src = targetUrl;
 }
 
@@ -82,10 +85,16 @@ function loadWebUrl(url) {
 function updateNavButtons() {
     const btnBack = document.getElementById('btn-back');
     const btnForward = document.getElementById('btn-forward');
-    const webview = document.getElementById('webview');
+    let wv = null;
+    if (typeof getActiveTab === 'function') {
+        const tab = getActiveTab();
+        if (tab && tab.webview) wv = tab.webview;
+    }
+    if (!wv) wv = document.getElementById('webview');
+
     try {
-        if (btnBack) btnBack.disabled = !webview.canGoBack();
-        if (btnForward) btnForward.disabled = !webview.canGoForward();
+        if (btnBack) btnBack.disabled = !wv || !wv.canGoBack();
+        if (btnForward) btnForward.disabled = !wv || !wv.canGoForward();
     } catch {
         if (btnBack) btnBack.disabled = true;
         if (btnForward) btnForward.disabled = true;
