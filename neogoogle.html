@@ -1,195 +1,223 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoBrowser Search</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
-        body {
-            background: #0b0b0b;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            color: #fff;
-            overflow: hidden;
-            padding: 20px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeoBrowser Search &amp; Web Engine</title>
+<style>
+:root {
+    --bg-base: #09090b;
+    --bg-surface: #121218;
+    --bg-surface-elevated: #1a1a24;
+    --border-subtle: rgba(255, 255, 255, 0.1);
+    --primary: #8b5cf6;
+    --accent: #38bdf8;
+    --text-main: #f4f4f5;
+    --text-muted: #a1a1aa;
+    --radius-md: 14px;
+    --radius-full: 9999px;
+}
 
-        .title {
-            font-size: 4.5rem;
-            font-weight: bold;
-            margin-bottom: 40px;
-            background: linear-gradient(90deg, #6200ea, #00b0ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-align: center;
-            text-shadow: 0 0 20px rgba(98, 0, 234, 0.5);
-            animation: glow 2s infinite alternate;
-        }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background: radial-gradient(circle at 50% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 80% 80%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
+                var(--bg-base);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+    overflow: hidden;
+}
 
-        .search-container {
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 25px;
-        }
+.brand {
+    text-align: center;
+    margin-bottom: 32px;
+}
+.brand-title {
+    font-size: 56px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #c084fc 0%, #a855f7 40%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 30px rgba(168, 85, 247, 0.4));
+    margin-bottom: 8px;
+}
+.brand-subtitle {
+    font-size: 15px;
+    color: var(--text-muted);
+}
 
-        .search-form {
-            width: 100%;
-            position: relative;
-        }
+.search-card {
+    width: 100%;
+    max-width: 680px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 32px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
 
-        .search-input {
-            background: #1a1a1a;
-            border: 2px solid #4d4d4d;
-            border-radius: 30px;
-            padding: 18px 25px;
-            font-size: 18px;
-            color: #fff;
-            width: 100%;
-            outline: none;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
+.mode-tabs {
+    display: flex;
+    gap: 8px;
+    background: var(--bg-surface-elevated);
+    padding: 4px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-subtle);
+}
+.mode-btn {
+    flex: 1;
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+.mode-btn.active {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(139, 92, 246, 0.4);
+}
 
-        .search-input:focus {
-            border-color: #6200ea;
-            box-shadow: 0 0 0 3px rgba(98, 0, 234, 0.3);
-        }
+.input-wrap {
+    position: relative;
+    width: 100%;
+}
+.search-input {
+    width: 100%;
+    height: 52px;
+    background: var(--bg-surface-elevated);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-full);
+    padding: 0 24px;
+    font-size: 16px;
+    color: #fff;
+    outline: none;
+    transition: all 0.25s;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+.search-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.35);
+}
 
-        .search-button {
-            background: linear-gradient(90deg, #6200ea, #00b0ff);
-            border: none;
-            padding: 15px 35px;
-            font-size: 18px;
-            border-radius: 30px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(98, 0, 234, 0.3);
-        }
+.action-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+.submit-btn {
+    padding: 12px 28px;
+    border-radius: var(--radius-full);
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.35);
+}
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(124, 58, 237, 0.5);
+}
 
-        .search-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(98, 0, 234, 0.4);
-        }
-
-        .search-button:active {
-            transform: translateY(0);
-        }
-
-        .instructions {
-            margin-top: 20px;
-            color: #666;
-            text-align: center;
-            max-width: 500px;
-            font-size: 16px;
-            line-height: 1.5;
-        }
-
-        .keyboard-hint {
-            margin-top: 15px;
-            color: #444;
-            font-size: 14px;
-        }
-
-        @keyframes glow {
-            from {
-                text-shadow: 0 0 10px rgba(98, 0, 234, 0.5), 0 0 20px rgba(98, 0, 234, 0.3);
-            }
-            to {
-                text-shadow: 0 0 20px rgba(0, 176, 255, 0.5), 0 0 30px rgba(0, 176, 255, 0.3);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .title {
-                font-size: 3.5rem;
-            }
-            
-            .search-input {
-                padding: 15px 20px;
-                font-size: 16px;
-            }
-            
-            .search-button {
-                padding: 12px 25px;
-                font-size: 16px;
-            }
-        }
-    </style>
+.shortcuts-hint {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+</style>
 </head>
 <body>
-    <div class="title">NeoBrowser</div>
-    
-    <div class="search-container">
-        <form class="search-form" id="searchForm">
-            <input type="text" class="search-input" id="searchInput" placeholder="Search Google..." autofocus>
-        </form>
-        <button type="button" class="search-button" id="searchButton">Search</button>
-    </div>
-    
-    <div class="instructions">
-        Enter your search query above to search using Google
-    </div>
-    
-    <div class="keyboard-hint">
-        Press Enter to search or Ctrl+K to focus the search box
+
+<div class="brand">
+    <div class="brand-title">NeoSearch Engine</div>
+    <div class="brand-subtitle">Unified Search for Decentralized .Neo Sites and Google Web</div>
+</div>
+
+<div class="search-card">
+    <div class="mode-tabs">
+        <button class="mode-btn active" id="tab-google">🌐 Google Web Search</button>
+        <button class="mode-btn" id="tab-neo">⚡ Neo Network Search</button>
     </div>
 
-    <script>
-        const searchForm = document.getElementById('searchForm');
-        const searchInput = document.getElementById('searchInput');
-        const searchButton = document.getElementById('searchButton');
+    <div class="input-wrap">
+        <input type="text" class="search-input" id="search-input" placeholder="Search Google..." autofocus>
+    </div>
 
-        // Function to perform the search
-        function performSearch() {
-            const query = searchInput.value.trim();
-            if (query) {
-                // Encode the query for URL (spaces become +)
-                const encodedQuery = encodeURIComponent(query).replace(/%20/g, '+');
-                // Redirect to Google search
-                window.location.href = `https://www.google.com/search?q=${encodedQuery}`;
-            }
-        }
+    <div class="action-row">
+        <button class="submit-btn" id="submit-btn">Search Now</button>
+    </div>
 
-        // Form submission handler
-        searchForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            performSearch();
-        });
+    <div class="shortcuts-hint">
+        Press <strong style="color: #fff;">Enter</strong> to search • <strong style="color: #fff;">Ctrl+K</strong> to focus
+    </div>
+</div>
 
-        // Button click handler
-        searchButton.addEventListener('click', performSearch);
+<script>
+const { ipcRenderer } = require('electron');
 
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            // Ctrl+K to focus search input
-            if (e.ctrlKey && e.key === 'k') {
-                e.preventDefault();
-                searchInput.focus();
-            }
-            
-            // Escape to blur search input
-            if (e.key === 'Escape') {
-                searchInput.blur();
-            }
-        });
+let currentMode = "google";
+const searchInput = document.getElementById('search-input');
+const submitBtn = document.getElementById('submit-btn');
+const tabGoogle = document.getElementById('tab-google');
+const tabNeo = document.getElementById('tab-neo');
 
-        // Focus the search input on load
+tabGoogle.addEventListener('click', () => {
+    currentMode = "google";
+    tabGoogle.classList.add('active');
+    tabNeo.classList.remove('active');
+    searchInput.placeholder = "Search Google Web...";
+    searchInput.focus();
+});
+
+tabNeo.addEventListener('click', () => {
+    currentMode = "neo";
+    tabNeo.classList.add('active');
+    tabGoogle.classList.remove('active');
+    searchInput.placeholder = "Search 45+ .neo sites (e.g. 2048, flappy-bird)...";
+    searchInput.focus();
+});
+
+function doSearch() {
+    const q = searchInput.value.trim();
+    if (!q) return;
+
+    if (currentMode === "google") {
+        ipcRenderer.send('open-external-browser', `https://www.google.com/search?q=${encodeURIComponent(q)}`);
+    } else {
+        ipcRenderer.send('search', q);
+        window.close();
+    }
+}
+
+searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') doSearch();
+});
+submitBtn.addEventListener('click', doSearch);
+
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'k') {
+        e.preventDefault();
         searchInput.focus();
-    </script>
+    }
+});
+</script>
 </body>
 </html>

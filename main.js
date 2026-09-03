@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import fetch from 'node-fetch';
 
 let mainWindow;
@@ -109,6 +109,14 @@ ipcMain.on('load-site', async (event, domain) => {
     } catch (err) {
         console.error('Load site error:', err.message);
         mainWindow.webContents.send('search-error', 'Cannot connect to server: ' + err.message);
+    }
+});
+
+ipcMain.on('open-external-browser', (event, url) => {
+    if (url && typeof url === 'string') {
+        shell.openExternal(url).catch(err => {
+            console.error('Failed to open external browser:', err.message);
+        });
     }
 });
 
