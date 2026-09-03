@@ -49,7 +49,8 @@ function loadNeoDomain(domain) {
     if (protocolText) protocolText.textContent = "fetch://";
     if (protocolChip) protocolChip.style.color = "#38bdf8";
 
-    const targetUrl = `${GLOBAL_SERVER_URL}/site/${domain}/`;
+    const baseUrl = (GLOBAL_SERVER_URL || "").replace(/\/+$/, '');
+    const targetUrl = `${baseUrl}/site/${domain}/`;
     console.log(`🚀 Loading .neo site [${domain}] -> ${targetUrl}`);
     
     showWebview();
@@ -92,7 +93,8 @@ async function checkServerStatus() {
     if (!serverStatusPill || !statusText) return;
 
     try {
-        const res = await fetch(`${GLOBAL_SERVER_URL}/status`, { cache: "no-store" });
+        const baseUrl = (GLOBAL_SERVER_URL || "").replace(/\/+$/, '');
+        const res = await fetch(`${baseUrl}/status`, { cache: "no-store" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         if (data.status === "online") {
