@@ -1,6 +1,6 @@
 {
   "name": "neobrowser",
-  "version": "8.0.0",
+  "version": "8.0.1",
   "main": "main.js",
   "type": "module",
   "description": "This uses Chromium viewer with Electron to render full HTML/CSS/JS. Left persistent rounded search/address bar, Black launch demo page, fetch://<domain>.neo direct navigation, Keyword search over registry.json (matches name or domain) with external Chromium browser.",

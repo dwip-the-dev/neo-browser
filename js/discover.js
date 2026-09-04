@@ -17,24 +17,24 @@ function updateCategoryPillCounts() {
 
     const icons = {
         "all": "",
-        "AI": "🤖 ",
-        "Dev Tools": "💻 ",
-        "Finance": "🪙 ",
-        "Productivity": "⚡ ",
-        "Media": "🎬 ",
-        "Social": "💬 ",
-        "Science": "🪐 ",
-        "Security": "🛡️ ",
-        "Commerce": "🛍️ ",
-        "Games": "🎮 ",
-        "Official": "⚡ "
+        "AI": '<i class="bi bi-robot"></i> ',
+        "Dev Tools": '<i class="bi bi-code-square"></i> ',
+        "Finance": '<i class="bi bi-coin"></i> ',
+        "Productivity": '<i class="bi bi-lightning-charge"></i> ',
+        "Media": '<i class="bi bi-film"></i> ',
+        "Social": '<i class="bi bi-chat-dots"></i> ',
+        "Science": '<i class="bi bi-globe-americas"></i> ',
+        "Security": '<i class="bi bi-shield-check"></i> ',
+        "Commerce": '<i class="bi bi-bag"></i> ',
+        "Games": '<i class="bi bi-controller"></i> ',
+        "Official": '<i class="bi bi-lightning-charge"></i> '
     };
 
     document.querySelectorAll('.cat-pill').forEach(pill => {
         const cat = pill.getAttribute('data-cat');
         const count = counts[cat] || (cat === "all" ? entries.length : 0);
         const iconPrefix = icons[cat] || "";
-        pill.textContent = `${iconPrefix}${cat === "all" ? "All Sites" : cat} (${count})`;
+        pill.innerHTML = `${iconPrefix}${cat === "all" ? "All Sites" : cat} (${count})`;
     });
 }
 

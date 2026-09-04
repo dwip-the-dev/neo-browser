@@ -204,7 +204,7 @@ function switchTab(tabId) {
         // Home tab
         currentLoadedDomain = null;
         if (searchView) searchView.style.display = 'flex';
-        if (webviewContainer) webviewContainer.style.display = 'none';
+        if (webviewContainer) webviewContainer.classList.remove('visible');
         if (omniboxInput) omniboxInput.value = "";
         if (protocolText) protocolText.textContent = "fetch://";
         if (protocolChip) protocolChip.style.color = "#38bdf8";
@@ -213,7 +213,7 @@ function switchTab(tabId) {
         // Site tab
         currentLoadedDomain = activeTab.domain;
         if (searchView) searchView.style.display = 'none';
-        if (webviewContainer) webviewContainer.style.display = 'block';
+        if (webviewContainer) webviewContainer.classList.add('visible');
 
         if (activeTab.webview) {
             activeTab.webview.style.display = 'flex';
@@ -221,7 +221,7 @@ function switchTab(tabId) {
             navigateTab(activeTab, activeTab.domain);
         }
 
-        if (omniboxInput) omniboxInput.value = `fetch://${activeTab.domain}/`;
+        if (omniboxInput) omniboxInput.value = `${activeTab.domain}/`;
         if (protocolText) protocolText.textContent = "fetch://";
         if (protocolChip) protocolChip.style.color = "#38bdf8";
         updateNavButtons();
@@ -241,7 +241,7 @@ function navigateTab(tab, domain) {
     const webviewContainer = document.getElementById('webview-container');
     const searchView = document.getElementById('search-view');
     if (searchView) searchView.style.display = 'none';
-    if (webviewContainer) webviewContainer.style.display = 'block';
+    if (webviewContainer) webviewContainer.classList.add('visible');
 
     if (!tab.webview) {
         const wv = document.createElement('webview');
@@ -280,7 +280,7 @@ function navigateTab(tab, domain) {
             if (tab.id === ACTIVE_TAB_ID) {
                 updateNavButtons();
                 const omniboxInput = document.getElementById('omnibox-input');
-                if (omniboxInput) omniboxInput.value = `fetch://${tab.domain}/`;
+                if (omniboxInput) omniboxInput.value = `${tab.domain}/`;
             }
         });
 
@@ -327,13 +327,13 @@ function renderTabs() {
         } else if (tab.domain) {
             iconHtml = getFaviconHtml(tab.domain, tab.title);
         } else {
-            iconHtml = `<span style="font-size: 13px;">⚡</span>`;
+            iconHtml = `<span style="font-size: 13px;"><i class="bi bi-lightning-charge"></i></span>`;
         }
 
         tabEl.innerHTML = `
             <div class="tab-icon">${iconHtml}</div>
             <span class="tab-title" title="${escapeHtml(tab.title)}">${escapeHtml(tab.title)}</span>
-            <button class="tab-close" title="Close Tab (Ctrl+W)">✕</button>
+            <button class="tab-close" title="Close Tab (Ctrl+W)"><i class="bi bi-x"></i></button>
         `;
 
         tabEl.addEventListener('click', (e) => {
@@ -392,7 +392,7 @@ function renderHistory() {
         el.className = 'history-item-card';
         el.innerHTML = `
             <div class="history-left">
-                <span style="font-size: 14px;">🌐</span>
+            <span style="font-size: 14px;"><i class="bi bi-globe2"></i></span>
                 <span class="history-domain">fetch://${escapeHtml(item.domain)}/</span>
             </div>
             <span class="history-time">${escapeHtml(item.time)}</span>
@@ -444,7 +444,7 @@ function renderDownloads() {
         const el = document.createElement('div');
         el.className = 'download-item-card';
         el.innerHTML = `
-            <div class="dl-icon">📦</div>
+            <div class="dl-icon"><i class="bi bi-box-seam" style="font-size: 20px; color: var(--accent);"></i></div>
             <div class="dl-info">
                 <div class="dl-name">${escapeHtml(item.name)}</div>
                 <div class="dl-meta">${escapeHtml(item.size)} • ${escapeHtml(item.time)}</div>

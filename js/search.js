@@ -75,7 +75,7 @@ function performSearch(query) {
                 </div>
                 <div class="serp-title">
                     <span>${escapeHtml(meta.name)}</span>
-                    <span class="launch-arrow">↗</span>
+                    <span class="launch-arrow"><i class="bi bi-arrow-up-right"></i></span>
                 </div>
                 <div class="serp-desc">
                     Decentralized application accessible on the Neo network at fetch://${domain}. Fast, peer-routed, and offline-capable.

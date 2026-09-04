@@ -1,4 +1,4 @@
-# 🌐 NeoBrowser
+# <i class="bi bi-globe2"></i> NeoBrowser
 ![NeoBrowser Icon](icon.jpg)
 
 A **fully decentralized, privacy-first web browser** built on Electron. Lightweight, sandboxed, and leaves zero traces - no accounts, no browsing history, no trackers, and no ads.
@@ -16,42 +16,42 @@ A **fully decentralized, privacy-first web browser** built on Electron. Lightwei
 
 ---
 
-## ✨ Features
+##  Features
 
-- 🔄 **Realtime Decentralization**  
+-  **Realtime Decentralization**  
   Automatically fetches the latest global server URL from a public JSON file. No hardcoded links - update the JSON and every user gets the new link instantly.
 
-- 🔒 **Privacy by Default**  
+-  **Privacy by Default**  
   No accounts, no local storage of history/cookies/trackers, built-in `fetch://` protocol for sandboxed requests, and no ads or data collection (logging directory is temporary for testing purposes only).
 
-- ⚡ **Zero Rebuilds**  
+- <i class="bi bi-lightning-charge"></i> **Zero Rebuilds**  
   Server updates propagate globally without app rebuilds thanks to our JSON key system.
 
-- 🛠️ **Developer-Friendly**  
+-  **Developer-Friendly**  
   Hot reload with `electronmon`, JSON-driven site mappings, and easy site management.
 
-- 🖥️ **Lightweight & Cross-Platform**  
+-  **Lightweight & Cross-Platform**  
   Runs on Linux with minimal resource usage.
 
-- 🪟 **Windows App Build Coming Soon**  
+- [Windows] **Windows App Build Coming Soon**  
   .exe build for Windows in development.
 
 ---
 
-## 📸 Demo
+##  Demo
 
-### 🔍 Home & Search 
+###  Home & Search 
 ![Demo Search](demo/demo-search.png)
 
-### 🌐 Site Loading
+### <i class="bi bi-globe2"></i> Site Loading
 ![Demo Webview](demo/demo-webview.png)
 
-### ⚙️ JSON Realtime Update
+###  JSON Realtime Update
 ![Demo JSON](demo/demo-json.png)
 
 ---
 
-## 🚀 Installation & Usage
+## [Launch] Installation & Usage
 
 1. **Clone and install**
    ```bash
@@ -92,7 +92,7 @@ A **fully decentralized, privacy-first web browser** built on Electron. Lightwei
 
 ---
 
-## 🔑 How It Works
+##  How It Works
 
 NeoBrowser connects to the live serverless backend hosted on Vercel:
 
@@ -106,7 +106,7 @@ All requests automatically route to this dynamically resolved endpoint, providin
 
 ---
 
-## 🛠️ Development
+##  Development
 
 **Hot reload** is enabled via `electronmon`. The browser will automatically reload on file changes.
 
@@ -124,7 +124,7 @@ All requests automatically route to this dynamically resolved endpoint, providin
 
 ---
 
-## 📅 Roadmap
+##  Roadmap
 
 - [x] NeoSearch Google-style engine v2.0
 - [x] 45 Decentralized sites 100% operational
@@ -137,7 +137,7 @@ All requests automatically route to this dynamically resolved endpoint, providin
 
 ---
 
-## 📬 Contact & Support
+##  Contact & Support
 
 - **Developer**: Dwip Biswas ([@dwip-the-dev](https://github.com/dwip-the-dev))
 - **Email**: [dwipbiswas@yahoo.com](mailto:dwipbiswas@yahoo.com)
@@ -146,6 +146,6 @@ All requests automatically route to this dynamically resolved endpoint, providin
 
 ---
 
-## 📜 License
+##  License
 
 MIT License © 2026 NeoBrowser (dwip-the-dev)

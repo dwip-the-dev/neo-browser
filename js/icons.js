@@ -1,124 +1,94 @@
-// ==================== STREAMING FAVICON & VECTOR ICON ENGINE ====================
+// ==================== BOOTSTRAP VECTOR ICON ENGINE ====================
+// Pure Bootstrap & vector icon mappings for all decentralized .neo sites and services.
+// Zero third-party real-world trademark favicons or telemetry calls.
 
-const PALETTES = [
-    ["#38bdf8", "#818cf8"], // Cyan -> Indigo
-    ["#f43f5e", "#fb923c"], // Rose -> Orange
-    ["#10b981", "#06b6d4"], // Emerald -> Cyan
-    ["#8b5cf6", "#d946ef"], // Purple -> Fuchsia
-    ["#f59e0b", "#ef4444"], // Amber -> Red
-    ["#06b6d4", "#3b82f6"]  // Cyan -> Blue
-];
-
-// Upstream live domain stream mapping
-const ICON_STREAM_MAP = {
-    "2048.neo": "play2048.co",
-    "flappy-bird.neo": "flappybird.io",
-    "tetris.neo": "tetris.com",
-    "crossy-road.neo": "crossyroad.com",
-    "candy-crush.neo": "king.com",
-    "fruit-slicer.neo": "halfbrick.com",
-    "minesweeper.neo": "minesweeper.online",
-    "typing-game.neo": "monkeytype.com",
-    "the-cube.neo": "rubiks.com",
-    "snake-game.neo": "playsnake.org",
-    "breakout.neo": "atari.com",
-    "tic-tac-toe.neo": "playtictactoe.org",
-    "ping-pong.neo": "ponggame.org",
-    "tower-block.neo": "ketchappgames.com",
-    "whack-a-mole.neo": "arcade.com",
-    "archery.neo": "worldarchery.sport",
-    "connect-four.neo": "coolmathgames.com",
-    "dice-roll.neo": "random.org",
-    "emoji-catch.neo": "emojipedia.org",
-    "hangman.neo": "thewordsearch.com",
-    "insect-catch.neo": "nationalgeographic.com",
-    "keyboard-hero.neo": "pianotiles.org",
-    "maze.neo": "mazegenerator.net",
-    "memory-card.neo": "matchthememory.com",
-    "menja.neo": "ninja.com",
-    "quiz-game.neo": "quizlet.com",
-    "rock-paper-scissor.neo": "wrpsa.com",
-    "shape-clicker.neo": "geometrydash.com",
-    "simon-says.neo": "hasbro.com",
-    "speak-number-guess.neo": "speechify.com",
-    "home.neo": "electronjs.org",
-    "about.neo": "wikipedia.org",
-    "app.neo": "appimage.org",
-    "pricing.neo": "stripe.com",
-    "update.neo": "semver.org",
-    "privacy.neo": "eff.org",
-    "contact.neo": "telegram.org",
-    "share.neo": "bittorrent.com",
-    "video.neo": "youtube.com",
-    "audio.neo": "spotify.com",
-    "onlinetest.neo": "speedtest.net",
-    "powertest.neo": "browserleaks.com",
-    "allsim.neo": "twitch.tv",
-    "download-test.neo": "archive.org",
-    "example.neo": "developer.mozilla.org",
-    "test.neo": "w3.org",
-    "google": "google.com",
-    "github": "github.com",
-    "telegram": "telegram.org",
-    "yahoo": "yahoo.com",
-    "vercel": "vercel.com"
+const DOMAIN_BOOTSTRAP_ICONS = {
+    "home.neo": "bi-house-door",
+    "about.neo": "bi-info-circle",
+    "app.neo": "bi-download",
+    "pricing.neo": "bi-tag",
+    "update.neo": "bi-clock-history",
+    "privacy.neo": "bi-shield-check",
+    "contact.neo": "bi-envelope",
+    "share.neo": "bi-broadcast",
+    "2048.neo": "bi-grid-3x3",
+    "flappy-bird.neo": "bi-controller",
+    "tetris.neo": "bi-bounding-box",
+    "crossy-road.neo": "bi-signpost",
+    "candy-crush.neo": "bi-gem",
+    "fruit-slicer.neo": "bi-slash-circle",
+    "minesweeper.neo": "bi-flag",
+    "typing-game.neo": "bi-keyboard",
+    "the-cube.neo": "bi-box",
+    "snake-game.neo": "bi-activity",
+    "breakout.neo": "bi-bricks",
+    "tic-tac-toe.neo": "bi-x-diamond",
+    "ping-pong.neo": "bi-pause-circle",
+    "tower-block.neo": "bi-stack",
+    "whack-a-mole.neo": "bi-hammer",
+    "archery.neo": "bi-bullseye",
+    "connect-four.neo": "bi-circle-square",
+    "dice-roll.neo": "bi-dice-5",
+    "hangman.neo": "bi-alphabet",
+    "insect-catch.neo": "bi-bug",
+    "keyboard-hero.neo": "bi-music-note",
+    "maze.neo": "bi-shuffle",
+    "memory-card.neo": "bi-card-heading",
+    "menja.neo": "bi-lightning",
+    "quiz-game.neo": "bi-question-circle",
+    "rock-paper-scissor.neo": "bi-scissors",
+    "shape-clicker.neo": "bi-pentagon",
+    "simon-says.neo": "bi-palette",
+    "speak-no-guess.neo": "bi-mic",
+    "chess-master.neo": "bi-suit-spade",
+    "threat-map.neo": "bi-shield-exclamation",
+    "neural-chat.neo": "bi-chat-dots",
+    "crypto-tracker.neo": "bi-graph-up",
+    "lofi-beats.neo": "bi-soundwave",
+    "solar-system-3d.neo": "bi-globe2",
+    "json-formatter.neo": "bi-braces",
+    "regex-lab.neo": "bi-code-slash",
+    "pomodoro-focus.neo": "bi-stopwatch",
+    "sudoku-zen.neo": "bi-grid-9x9",
+    "notes-vault.neo": "bi-journal-text",
+    "markdown-studio.neo": "bi-markdown",
+    "google": "bi-search",
+    "github": "bi-github",
+    "telegram": "bi-telegram",
+    "yahoo": "bi-envelope",
+    "vercel": "bi-triangle"
 };
 
 /**
- * Streams icons on-demand directly over high-speed global Favicon CDN stream.
- * ZERO local file downloads or disk bloat.
+ * Resolves appropriate Bootstrap icon class for a .neo domain or service name.
  */
-function getStreamingIconUrl(domain) {
+function getBootstrapIconClass(domain) {
     const clean = (domain || "").replace(/^fetch:\/\//, "").replace(/\/$/, "").toLowerCase();
-    const streamDomain = ICON_STREAM_MAP[clean] || (clean.endsWith('.neo') ? clean.replace(/\.neo$/, ".com") : clean);
-    return `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${streamDomain}&size=64`;
+    return DOMAIN_BOOTSTRAP_ICONS[clean] || "bi-globe";
+}
+
+/**
+ * Returns clean Bootstrap Icon HTML element.
+ */
+function getFaviconHtml(domain, altName = "") {
+    const clean = (domain || "").replace(/^fetch:\/\//, "").replace(/\/$/, "").toLowerCase();
+    const iconClass = getBootstrapIconClass(clean);
+    return `<i class="bi ${iconClass} favicon-icon" title="${altName || clean}"></i>`;
+}
+
+/**
+ * Returns external service icon HTML element.
+ */
+function getServiceFaviconHtml(serviceName) {
+    const iconClass = getBootstrapIconClass(serviceName);
+    return `<i class="bi ${iconClass} favicon-icon" title="${serviceName}"></i>`;
 }
 
 /**
  * Deterministically streams an algorithmic vector SVG badge for any domain.
- * Guarantees instant icon rendering for infinite sites.
  */
 function generateAvatarSvg(domain) {
-    const raw = (domain || "").replace(/^fetch:\/\//, "").replace(/\.neo$/, "").replace(/[-_]/g, " ").trim();
-    const char = (raw[0] || "N").toUpperCase();
-    
-    let hash = 0;
-    const str = domain || "neo";
-    for (let i = 0; i < str.length; i++) {
-        hash = (hash << 5) - hash + str.charCodeAt(i);
-        hash |= 0;
-    }
-    const idx = Math.abs(hash) % PALETTES.length;
-    const [c1, c2] = PALETTES[idx];
-    const gradId = `av_${Math.abs(hash)}_${char.charCodeAt(0)}`;
-
-    return `<svg class="favicon-img avatar-svg" viewBox="0 0 64 64" width="100%" height="100%">
-        <defs>
-            <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="${c1}"/>
-                <stop offset="100%" stop-color="${c2}"/>
-            </linearGradient>
-        </defs>
-        <rect width="64" height="64" rx="14" fill="url(#${gradId})"/>
-        <text x="50%" y="54%" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="700" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">${char}</text>
-    </svg>`;
-}
-
-/**
- * Returns dynamic streaming favicon <img> element.
- * Streams on demand over the internet with automatic SVG avatar fallback.
- */
-function getFaviconHtml(domain, altName = "") {
-    const clean = (domain || "").replace(/^fetch:\/\//, "").replace(/\/$/, "");
-    const streamUrl = getStreamingIconUrl(clean);
-    
-    return `<img src="${streamUrl}" class="favicon-img" onerror="this.onerror=null; this.parentElement.innerHTML = generateAvatarSvg('${clean}');" alt="${altName || clean}" loading="lazy">`;
-}
-
-/**
- * Streams external service branded favicon
- */
-function getServiceFaviconHtml(serviceName) {
-    const streamUrl = getStreamingIconUrl(serviceName);
-    return `<img src="${streamUrl}" class="favicon-img" onerror="this.onerror=null; this.parentElement.innerHTML = generateAvatarSvg('${serviceName}');" alt="${serviceName}" loading="lazy">`;
+    const clean = (domain || "").replace(/^fetch:\/\//, "").replace(/\/$/, "").toLowerCase();
+    const iconClass = getBootstrapIconClass(clean);
+    return `<i class="bi ${iconClass} favicon-icon"></i>`;
 }

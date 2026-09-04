@@ -200,7 +200,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (btnReload) {
         btnReload.addEventListener('click', () => {
             const wv = getTargetWebview();
-            if (webviewContainer.style.display === 'block' && wv) wv.reload();
+            if (webviewContainer.classList.contains('visible') && wv) wv.reload();
             else { checkServerStatus(); renderDiscoverGrid(); }
         });
     }
@@ -232,11 +232,20 @@ window.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    function getCurrentWebview() {
+        if (typeof getActiveTab === 'function') {
+            const tab = getActiveTab();
+            if (tab && tab.webview) return tab.webview;
+        }
+        return document.getElementById('webview');
+    }
+
     if (btnRetrySite) {
         btnRetrySite.addEventListener('click', () => {
             if (errorOverlay) errorOverlay.style.display = 'none';
             showLoading();
-            webview.reload();
+            const wv = getCurrentWebview();
+            if (wv) wv.reload();
         });
     }
     if (btnReturnHome) {
@@ -248,23 +257,28 @@ window.addEventListener('DOMContentLoaded', async () => {
         const domainLink = e.target.closest('.footer-link[data-domain]');
         if (domainLink) {
             e.preventDefault();
-            loadNeoDomain(domainLink.dataset.domain);
-            return;
+            const domain = domainLink.getAttribute('data-domain');
+            loadNeoDomain(domain);
         }
-        const externalLink = e.target.closest('.external-link[data-url]');
-        if (externalLink) {
+
+        const extLink = e.target.closest('.external-link');
+        if (extLink) {
             e.preventDefault();
-            ipcRenderer.send('open-external-browser', externalLink.dataset.url);
-            return;
+            const url = extLink.getAttribute('data-url');
+            if (url) ipcRenderer.send('open-external-browser', url);
         }
     });
 
-    // Global Shortcuts
+    // Global Browser Keybindings
     document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (omniboxDropdown) omniboxDropdown.classList.remove('active');
+            if (errorOverlay) errorOverlay.style.display = 'none';
+        }
         const searchView = document.getElementById('search-view');
-        if ((e.ctrlKey && e.key === 'k') || (e.key === '/' && document.activeElement.tagName !== 'INPUT')) {
+        if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
             e.preventDefault();
-            if (searchView && searchView.style.display !== 'none') {
+            if (searchView && searchView.style.display !== 'none' && heroSearchInput) {
                 heroSearchInput.focus();
                 heroSearchInput.select();
             } else {
@@ -277,7 +291,8 @@ window.addEventListener('DOMContentLoaded', async () => {
             omniboxInput.focus();
             omniboxInput.select();
         }
-        if (e.altKey && e.key === 'ArrowLeft' && webview.canGoBack()) webview.goBack();
-        if (e.altKey && e.key === 'ArrowRight' && webview.canGoForward()) webview.goForward();
+        const wv = getCurrentWebview();
+        if (e.altKey && e.key === 'ArrowLeft' && wv && wv.canGoBack()) wv.goBack();
+        if (e.altKey && e.key === 'ArrowRight' && wv && wv.canGoForward()) wv.goForward();
     });
 });

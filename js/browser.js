@@ -23,7 +23,7 @@ function showWebview() {
     const webviewContainer = document.getElementById('webview-container');
     const errorOverlay = document.getElementById('error-overlay');
     if (searchView) searchView.style.display = 'none';
-    if (webviewContainer) webviewContainer.style.display = 'block';
+    if (webviewContainer) webviewContainer.classList.add('visible');
     if (errorOverlay) errorOverlay.style.display = 'none';
 }
 
@@ -32,7 +32,7 @@ function hideWebview() {
     const webviewContainer = document.getElementById('webview-container');
     const errorOverlay = document.getElementById('error-overlay');
     if (searchView) searchView.style.display = 'flex';
-    if (webviewContainer) webviewContainer.style.display = 'none';
+    if (webviewContainer) webviewContainer.classList.remove('visible');
     if (errorOverlay) errorOverlay.style.display = 'none';
     updateNavButtons();
 }
@@ -44,7 +44,7 @@ function loadNeoDomain(domain) {
     const protocolText = document.getElementById('protocol-text');
     const protocolChip = document.getElementById('protocol-chip');
 
-    if (omniboxInput) omniboxInput.value = `fetch://${domain}`;
+    if (omniboxInput) omniboxInput.value = `${domain}/`;
     if (protocolText) protocolText.textContent = "fetch://";
     if (protocolChip) protocolChip.style.color = "#38bdf8";
 
@@ -58,12 +58,10 @@ function loadNeoDomain(domain) {
 
     const baseUrl = (GLOBAL_SERVER_URL || "").replace(/\/+$/, '');
     const targetUrl = `${baseUrl}/site/${domain}/`;
-    console.log(`🚀 Loading .neo site [${domain}] -> ${targetUrl}`);
+    console.log(`[NAV] Loading .neo site [${domain}] -> ${targetUrl}`);
 
     showWebview();
     showLoading();
-    const webview = document.getElementById('webview');
-    if (webview) webview.src = targetUrl;
 }
 
 function loadWebUrl(url) {
@@ -71,7 +69,6 @@ function loadWebUrl(url) {
     const omniboxInput = document.getElementById('omnibox-input');
     const protocolText = document.getElementById('protocol-text');
     const protocolChip = document.getElementById('protocol-chip');
-    const webview = document.getElementById('webview');
 
     if (omniboxInput) omniboxInput.value = url;
     if (protocolText) protocolText.textContent = url.startsWith('https') ? "https://" : "http://";
@@ -79,7 +76,16 @@ function loadWebUrl(url) {
 
     showWebview();
     showLoading();
-    if (webview) webview.src = url;
+
+    if (typeof getActiveTab === 'function') {
+        const tab = getActiveTab();
+        if (tab && tab.webview) {
+            tab.domain = url;
+            tab.title = url;
+            tab.webview.src = url;
+            tab.webview.style.display = 'flex';
+        }
+    }
 }
 
 function updateNavButtons() {
@@ -118,7 +124,7 @@ async function checkServerStatus() {
             
             // Auto-update registry if server version changed
             if (data.version && data.version !== REGISTRY_VERSION) {
-                console.log(`📡 New server registry version detected [${data.version}], syncing dynamically...`);
+                console.log(`[SYNC] New server registry version detected [${data.version}], syncing dynamically...`);
                 syncRegistryFromServer();
             }
             return;

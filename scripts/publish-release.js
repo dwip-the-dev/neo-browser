@@ -15,43 +15,46 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.argv[2];
 const REPO = 'dwip-the-dev/neo-browser';
 
 if (!GITHUB_TOKEN) {
-    console.error('❌ GITHUB_TOKEN is required. Provide it as environment variable or first argument.');
+    console.error('[ERR] GITHUB_TOKEN is required. Provide it as environment variable or first argument.');
     process.exit(1);
 }
 
 const distDir = path.join(rootDir, 'dist');
 if (!fs.existsSync(distDir)) {
-    console.error('❌ dist/ directory does not exist.');
+    console.error('[ERR] dist/ directory does not exist.');
     process.exit(1);
 }
 
-const releaseBody = `## 🌐 NeoBrowser ${tagName} Multi-Platform Release
+const releaseBody = `## <i class="bi bi-globe2"></i> NeoBrowser ${tagName} Multi-Platform Release
 
 Lightweight, decentralized base browser for the Neo Network. All sites and registry metadata are dynamically driven by the decentralized serverless backend.
 
-### 📦 Platform Downloads
+### [Pkg] Platform Downloads
 
-#### 🐧 Linux:
+#### [Linux] Linux:
 - **Universal AppImage**: \`NeoBrowser-${version}.AppImage\` (Runs on any modern Linux distribution)
 - **Debian / Ubuntu / Mint**: \`neobrowser_${version}_amd64.deb\`
 - **Fedora / RHEL / openSUSE**: \`neobrowser-${version}.x86_64.rpm\`
 - **Arch Linux / Manjaro**: \`neobrowser-${version}.pkg.tar.zst\`
 - **Universal Tarball**: \`neobrowser-${version}.tar.gz\`
 
-#### 🪟 Windows:
+#### [Windows] Windows:
 - **Windows Setup Installer**: \`NeoBrowser Setup ${version}.exe\`
 - **Standalone Portable**: \`NeoBrowser-${version}-portable.exe\`
 - **Portable ZIP Archive**: \`NeoBrowser-${version}-win.zip\`
 
-### ✨ Key Updates in v${version}
+#### [Android] Android:
+- **Android APK**: `NeoBrowser-${version}.apk` (Native Kotlin mobile browser for decentralized .neo portals)
+
+###  Key Updates in v${version}
 - **Pure Base Browser Architecture**: Removed bundled site bloat (~40MB removed); backend serves as the single source of truth for all .neo sites.
-- **Cross-Platform OS Support**: Dedicated release binaries for all Linux distributions and Windows.
+- **Cross-Platform OS Support**: Dedicated release binaries for all Linux distributions, Windows, and Android.
 - **Modern Chrome-style UX**: Auto-hidden legacy menus, borderless tab chrome, native window icons, and single-instance handling.
 - **fetch:// Protocol Registration**: Native system integration for decentralized .neo URLs.
 `;
 
 async function publish() {
-    console.log(`🚀 Creating GitHub Release ${tagName} for ${REPO}...`);
+    console.log(`[Launch] Creating GitHub Release ${tagName} for ${REPO}...`);
 
     // 1. Create or get existing release
     let release;
@@ -73,7 +76,7 @@ async function publish() {
 
     if (createRes.ok) {
         release = await createRes.json();
-        console.log(`✅ Created GitHub Release: ${release.html_url}`);
+        console.log(`[OK] Created GitHub Release: ${release.html_url}`);
     } else {
         const err = await createRes.json();
         console.warn(`Release creation notice: ${err.message}`);
@@ -86,16 +89,16 @@ async function publish() {
         });
         if (getRes.ok) {
             release = await getRes.json();
-            console.log(`ℹ️ Found existing release: ${release.html_url}`);
+            console.log(`ℹ Found existing release: ${release.html_url}`);
         } else {
-            console.error('❌ Failed to create or get release:', err);
+            console.error('[ERR] Failed to create or get release:', err);
             process.exit(1);
         }
     }
 
     // 2. Identify candidate artifacts in dist/
     const allFiles = fs.readdirSync(distDir);
-    const validExtensions = ['.AppImage', '.deb', '.rpm', '.pkg.tar.zst', '.tar.gz', '.exe', '.zip', '.blockmap'];
+    const validExtensions = ['.AppImage', '.deb', '.rpm', '.pkg.tar.zst', '.pacman', '.tar.gz', '.exe', '.zip', '.blockmap', '.apk'];
     const artifacts = allFiles.filter(f => {
         const fullPath = path.join(distDir, f);
         if (!fs.statSync(fullPath).isFile()) return false;
@@ -103,7 +106,7 @@ async function publish() {
         return validExtensions.some(ext => f.endsWith(ext));
     });
 
-    console.log(`\n📦 Found ${artifacts.length} artifacts to upload:`, artifacts);
+    console.log(`\n[Pkg] Found ${artifacts.length} artifacts to upload:`, artifacts);
 
     // Existing assets
     const existingAssets = release.assets || [];
@@ -117,14 +120,14 @@ async function publish() {
         // Delete if already uploaded
         const existing = existingAssets.find(a => a.name === fileName);
         if (existing) {
-            console.log(`  🗑️ Removing previous version of ${fileName}...`);
+            console.log(`  [Clean] Removing previous version of ${fileName}...`);
             await fetch(existing.url, {
                 method: 'DELETE',
                 headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
             });
         }
 
-        console.log(`  ⬆️ Uploading ${fileName} (${fileSizeMb} MB)...`);
+        console.log(`  ⬆ Uploading ${fileName} (${fileSizeMb} MB)...`);
         const fileBuffer = fs.readFileSync(filePath);
         const uploadUrl = `https://uploads.github.com/repos/${REPO}/releases/${release.id}/assets?name=${encodeURIComponent(fileName)}`;
 
@@ -139,15 +142,15 @@ async function publish() {
         });
 
         if (uploadRes.ok) {
-            console.log(`  ✅ Uploaded ${fileName}`);
+            console.log(`  [OK] Uploaded ${fileName}`);
         } else {
             const uploadErr = await uploadRes.text();
-            console.error(`  ❌ Failed to upload ${fileName}:`, uploadErr);
+            console.error(`  [ERR] Failed to upload ${fileName}:`, uploadErr);
         }
     }
 
-    console.log(`\n🎉 Successfully published all executables to release ${tagName}!`);
-    console.log(`🔗 Release URL: ${release.html_url}`);
+    console.log(`\n Successfully published all executables to release ${tagName}!`);
+    console.log(`[Link] Release URL: ${release.html_url}`);
 }
 
 publish().catch(err => {

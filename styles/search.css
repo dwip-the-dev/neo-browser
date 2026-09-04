@@ -507,6 +507,18 @@
     object-fit: contain !important;
     border-radius: 4px;
 }
+.favicon-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #38bdf8;
+}
+.card-icon .favicon-icon {
+    font-size: 22px;
+}
+.serp-breadcrumb .favicon-icon {
+    font-size: 14px;
+}
 .site-card:hover .card-icon {
     transform: scale(1.1);
 }

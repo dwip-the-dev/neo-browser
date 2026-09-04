@@ -12,10 +12,10 @@ const assetsDir = path.join(rootDir, 'assets');
 const buildDir = path.join(rootDir, 'build');
 const iconsDir = path.join(buildDir, 'icons');
 
-console.log('🎨 Generating cross-platform icons for NeoBrowser...');
+console.log(' Generating cross-platform icons for NeoBrowser...');
 
 if (!fs.existsSync(sourceIcon)) {
-    console.error(`❌ Source icon not found at ${sourceIcon}`);
+    console.error(`[ERR] Source icon not found at ${sourceIcon}`);
     process.exit(1);
 }
 
@@ -50,12 +50,12 @@ try {
         execSync(`magick "${sourceIcon}" -resize ${size}x${size} "${dest}"`);
     }
 
-    console.log('✅ All icons generated successfully:');
+    console.log('[OK] All icons generated successfully:');
     console.log(`   - Windows ICO: ${buildIco}`);
     console.log(`   - Linux/Universal PNG: ${buildPng}`);
     console.log(`   - Desktop Resolution Icons: ${iconsDir}/*`);
     console.log(`   - Runtime Window Icon: ${assetPng}`);
 } catch (err) {
-    console.error('❌ Error generating icons:', err.message);
+    console.error('[ERR] Error generating icons:', err.message);
     process.exit(1);
 }

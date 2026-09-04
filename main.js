@@ -1,6 +1,9 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import fetch from 'node-fetch';
 import path from 'path';
+import http from 'http';
+import fs from 'fs';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -26,8 +29,351 @@ if (!gotTheLock) {
 // Register fetch:// protocol
 app.setAsDefaultProtocolClient('fetch');
 
-// ===== FETCH SERVER URL FROM GITHUB JSON =====
+// ===== INTERNAL LOCAL DEV SERVER & P2P RELAY =====
+let localServer = null;
+const LOCAL_PORT = 8765;
+
+const P2P_SESSIONS = new Map();
+
+function pruneExpiredP2PSessions() {
+    const now = Date.now();
+    for (const [id, sess] of P2P_SESSIONS.entries()) {
+        if (now - sess.last_heartbeat > 60000) {
+            P2P_SESSIONS.delete(id);
+        }
+    }
+}
+
+function readJsonBody(request) {
+    return new Promise((resolve) => {
+        let body = '';
+        request.on('data', chunk => { body += chunk; });
+        request.on('end', () => {
+            try {
+                resolve(JSON.parse(body || '{}'));
+            } catch {
+                resolve({});
+            }
+        });
+        request.on('error', () => resolve({}));
+    });
+}
+
+function startLocalServer() {
+    const backendSitesDir = path.join(__dirname, '..', 'neobrowser-bcknd', 'sites');
+    const backendRegPath = path.join(__dirname, '..', 'neobrowser-bcknd', 'registry.json');
+    if (!fs.existsSync(backendSitesDir)) {
+        return false;
+    }
+
+    const mimeTypes = {
+        '.html': 'text/html; charset=utf-8',
+        '.css': 'text/css; charset=utf-8',
+        '.js': 'text/javascript; charset=utf-8',
+        '.json': 'application/json; charset=utf-8',
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.gif': 'image/gif',
+        '.svg': 'image/svg+xml',
+        '.ico': 'image/x-icon',
+        '.wav': 'audio/wav',
+        '.mp3': 'audio/mpeg'
+    };
+
+    try {
+        localServer = http.createServer(async (req, res) => {
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+            res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+            if (req.method === 'OPTIONS') {
+                res.writeHead(204);
+                res.end();
+                return;
+            }
+
+            const parsedUrl = new URL(req.url, `http://127.0.0.1:${LOCAL_PORT}`);
+            const pathname = decodeURIComponent(parsedUrl.pathname);
+
+            // Status endpoint
+            if (pathname === '/status') {
+                let reg = {};
+                try { reg = JSON.parse(fs.readFileSync(backendRegPath, 'utf8')); } catch {}
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    status: 'online',
+                    service: 'NeoBrowser Local Server',
+                    entries: Object.keys(reg).length,
+                    local: true
+                }));
+                return;
+            }
+
+            // Search or load endpoint
+            if (pathname === '/search' || pathname === '/load') {
+                const query = (parsedUrl.searchParams.get('query') || parsedUrl.searchParams.get('domain') || '').trim().toLowerCase();
+                let reg = {};
+                try { reg = JSON.parse(fs.readFileSync(backendRegPath, 'utf8')); } catch {}
+                const domain = query.endsWith('.neo') ? query : `${query}.neo`;
+                if (reg[domain]) {
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ url: `http://127.0.0.1:${LOCAL_PORT}/site/${domain}/` }));
+                    return;
+                }
+                res.writeHead(404, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: `Could not resolve ${domain}` }));
+                return;
+            }
+
+            // ===== P2P EPHEMERAL TRANSFER COORDINATOR ENDPOINTS =====
+            if (pathname === '/api/p2p/register' && req.method === 'POST') {
+                pruneExpiredP2PSessions();
+                const data = await readJsonBody(req);
+                const filename = data.filename || 'unnamed.bin';
+                const size = data.size ?? data.fileSize ?? 0;
+                const mime = data.mime ?? data.mimeType ?? 'application/octet-stream';
+                const sha256 = data.sha256 ?? data.fileHash ?? '';
+                const total_chunks = data.total_chunks ?? data.totalChunks ?? 1;
+
+                const rawId = crypto.randomBytes(4).toString('hex').toUpperCase();
+                const sessionId = `NEO-${rawId.substring(0, 4)}-${rawId.substring(4, 8)}`;
+
+                P2P_SESSIONS.set(sessionId, {
+                    id: sessionId,
+                    filename,
+                    size,
+                    mime,
+                    sha256,
+                    total_chunks,
+                    created_at: Date.now(),
+                    last_heartbeat: Date.now(),
+                    uploader_online: true,
+                    signals: new Map(),
+                    chunks: new Map()
+                });
+
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    status: 'ok',
+                    success: true,
+                    id: sessionId,
+                    sessionId: sessionId,
+                    message: 'Ephemeral P2P session initialized. Maintain heartbeat.'
+                }));
+                return;
+            }
+
+            if (pathname === '/api/p2p/heartbeat' && req.method === 'POST') {
+                pruneExpiredP2PSessions();
+                const data = await readJsonBody(req);
+                const sid = (data.id || data.sessionId || '').trim().toUpperCase();
+                if (P2P_SESSIONS.has(sid)) {
+                    const sess = P2P_SESSIONS.get(sid);
+                    sess.last_heartbeat = Date.now();
+                    sess.uploader_online = true;
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ status: 'ok', active: true, id: sid, sessionId: sid }));
+                } else {
+                    res.writeHead(404, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ status: 'error', active: false, message: 'Session expired or offline' }));
+                }
+                return;
+            }
+
+            const sessionMatch = pathname.match(/^\/api\/p2p\/session\/([^\/]+)$/);
+            if (sessionMatch && req.method === 'GET') {
+                pruneExpiredP2PSessions();
+                const sid = sessionMatch[1].trim().toUpperCase();
+                const sess = P2P_SESSIONS.get(sid);
+                if (sess) {
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({
+                        status: 'ok',
+                        success: true,
+                        session: {
+                            id: sess.id,
+                            sessionId: sess.id,
+                            filename: sess.filename,
+                            size: sess.size,
+                            mime: sess.mime,
+                            sha256: sess.sha256,
+                            total_chunks: sess.total_chunks,
+                            created_at: sess.created_at,
+                            uploader_online: true
+                        }
+                    }));
+                } else {
+                    res.writeHead(404, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({
+                        status: 'error',
+                        error: 'peer_offline',
+                        message: 'Uploader is offline or transfer session has vanished from the network.'
+                    }));
+                }
+                return;
+            }
+
+            if (pathname === '/api/p2p/signal' && req.method === 'POST') {
+                pruneExpiredP2PSessions();
+                const data = await readJsonBody(req);
+                const sid = (data.id || data.sessionId || '').trim().toUpperCase();
+                const toPeer = data.to_peer || '';
+                const signalData = data.data;
+                if (P2P_SESSIONS.has(sid)) {
+                    const sess = P2P_SESSIONS.get(sid);
+                    if (!sess.signals.has(toPeer)) sess.signals.set(toPeer, []);
+                    sess.signals.get(toPeer).push(signalData);
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ status: 'ok', success: true }));
+                } else {
+                    res.writeHead(404, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ status: 'error', message: 'Session offline' }));
+                }
+                return;
+            }
+
+            const signalMatch = pathname.match(/^\/api\/p2p\/signal\/([^\/]+)$/);
+            if (signalMatch && req.method === 'GET') {
+                pruneExpiredP2PSessions();
+                const sid = signalMatch[1].trim().toUpperCase();
+                const peerId = parsedUrl.searchParams.get('peer') || '';
+                if (P2P_SESSIONS.has(sid)) {
+                    const sess = P2P_SESSIONS.get(sid);
+                    const list = sess.signals.get(peerId) || [];
+                    sess.signals.delete(peerId);
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ status: 'ok', signals: list }));
+                } else {
+                    res.writeHead(404, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ status: 'error', error: 'peer_offline' }));
+                }
+                return;
+            }
+
+            if (pathname === '/api/p2p/chunk' && req.method === 'POST') {
+                pruneExpiredP2PSessions();
+                const data = await readJsonBody(req);
+                const sid = (data.id || data.sessionId || '').trim().toUpperCase();
+                const index = data.index;
+                const chunkData = data.data;
+                if (P2P_SESSIONS.has(sid)) {
+                    const sess = P2P_SESSIONS.get(sid);
+                    sess.last_heartbeat = Date.now();
+                    sess.chunks.set(String(index), { data: chunkData, ts: Date.now() });
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ status: 'ok', success: true }));
+                } else {
+                    res.writeHead(404, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ status: 'error', message: 'Session offline' }));
+                }
+                return;
+            }
+
+            const chunkMatch = pathname.match(/^\/api\/p2p\/chunk\/([^\/]+)\/([^\/]+)$/);
+            if (chunkMatch && req.method === 'GET') {
+                pruneExpiredP2PSessions();
+                const sid = chunkMatch[1].trim().toUpperCase();
+                const index = chunkMatch[2];
+                if (P2P_SESSIONS.has(sid)) {
+                    const sess = P2P_SESSIONS.get(sid);
+                    const chunkEntry = sess.chunks.get(String(index));
+                    if (chunkEntry) {
+                        res.writeHead(200, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ status: 'ok', success: true, index, data: chunkEntry.data }));
+                    } else {
+                        res.writeHead(202, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ status: 'waiting', message: 'Chunk not ready in stream yet' }));
+                    }
+                } else {
+                    res.writeHead(404, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ status: 'error', message: 'Session offline' }));
+                }
+                return;
+            }
+
+            if (pathname === '/api/p2p/unregister' && req.method === 'POST') {
+                const data = await readJsonBody(req);
+                const sid = (data.id || data.sessionId || '').trim().toUpperCase();
+                if (P2P_SESSIONS.has(sid)) {
+                    P2P_SESSIONS.delete(sid);
+                }
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ status: 'ok', success: true, message: 'Session destroyed.' }));
+                return;
+            }
+
+            // Site files endpoint: /site/<domain>/...
+            const siteMatch = pathname.match(/^\/site\/([^\/]+)(?:\/(.*))?$/);
+            if (siteMatch) {
+                const domain = siteMatch[1].toLowerCase();
+                let subPath = siteMatch[2] || '';
+                if (!subPath || subPath.endsWith('/')) subPath += 'index.html';
+
+                let reg = {};
+                try { reg = JSON.parse(fs.readFileSync(backendRegPath, 'utf8')); } catch {}
+                let filePath = null;
+
+                if (reg[domain] && reg[domain].path) {
+                    const baseDir = path.dirname(reg[domain].path);
+                    filePath = path.join(__dirname, '..', 'neobrowser-bcknd', baseDir, subPath);
+                }
+
+                if (!filePath || !fs.existsSync(filePath)) {
+                    const cleanName = domain.replace(/\.neo$/, '');
+                    try {
+                        const categories = fs.readdirSync(backendSitesDir);
+                        for (const cat of categories) {
+                            const candidate = path.join(backendSitesDir, cat, cleanName, subPath);
+                            if (fs.existsSync(candidate)) {
+                                filePath = candidate;
+                                break;
+                            }
+                        }
+                    } catch {}
+                }
+
+                if (filePath && fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+                    const ext = path.extname(filePath).toLowerCase();
+                    res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' });
+                    fs.createReadStream(filePath).pipe(res);
+                    return;
+                }
+            }
+
+            res.writeHead(404, { 'Content-Type': 'text/plain' });
+            res.end('Not Found');
+        });
+
+        localServer.on('error', (err) => {
+            console.warn('[LOCAL-SERVER] Could not bind port 8765:', err.message);
+        });
+
+        localServer.listen(LOCAL_PORT, '127.0.0.1', () => {
+            console.log(`[OK] Local backend server running on http://127.0.0.1:${LOCAL_PORT}`);
+        });
+        return true;
+    } catch (e) {
+        console.warn('[LOCAL-SERVER] Failed to start:', e.message);
+        return false;
+    }
+}
+
+// ===== FETCH SERVER URL =====
 async function loadServerURL() {
+    startLocalServer();
+    // Wait briefly for local server socket to open and verify
+    await new Promise(r => setTimeout(r, 100));
+    try {
+        const localCheck = await fetch(`http://127.0.0.1:${LOCAL_PORT}/status`, { cache: "no-store" });
+        if (localCheck.ok) {
+            GLOBAL_SERVER_URL = `http://127.0.0.1:${LOCAL_PORT}`;
+            console.log("[OK] Active server URL (Local Workspace):", GLOBAL_SERVER_URL);
+            return;
+        }
+    } catch {
+        // Fallback if local server failed
+    }
+
     const VERCEL_BACKEND = "https://neobrowser-bcknd.vercel.app";
     try {
         const res = await fetch("https://neobrowser-backend.github.io/key/index.json", { cache: "no-store" });
@@ -36,24 +382,19 @@ async function loadServerURL() {
         if (!data.GLOBAL_SERVER_URL) throw new Error("Missing GLOBAL_SERVER_URL in JSON");
 
         let candidate = data.GLOBAL_SERVER_URL;
-        // Verify candidate URL is active; fallback to Vercel if dead
         try {
             const check = await fetch(`${candidate}/status`, { cache: "no-store" });
             if (check.ok) {
                 GLOBAL_SERVER_URL = candidate;
-                console.log("✅ Loaded server URL:", GLOBAL_SERVER_URL);
+                console.log("[OK] Loaded server URL:", GLOBAL_SERVER_URL);
                 return;
             }
-        } catch {
-            // unreachable
-        }
-        console.warn(`Configured server ${candidate} unreachable, falling back to ${VERCEL_BACKEND}`);
+        } catch {}
         GLOBAL_SERVER_URL = VERCEL_BACKEND;
     } catch (err) {
-        console.error("❌ Failed to load server URL:", err.message);
-        GLOBAL_SERVER_URL = VERCEL_BACKEND; // fallback to deployed Vercel backend
+        GLOBAL_SERVER_URL = VERCEL_BACKEND;
     }
-    console.log("✅ Active server URL:", GLOBAL_SERVER_URL);
+    console.log("[OK] Active server URL:", GLOBAL_SERVER_URL);
 }
 
 // ===== FETCH WITH RETRY =====
@@ -179,7 +520,7 @@ app.on('ready', async () => {
         setTimeout(checkServerStatus, 1000);
         setInterval(checkServerStatus, 30000);
     } catch (err) {
-        console.error("❌ App failed to start:", err.message);
+        console.error("[ERR] App failed to start:", err.message);
         app.quit();
     }
 });

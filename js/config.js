@@ -47,7 +47,7 @@ function initRegistry() {
             if (parsed.reg && Object.keys(parsed.reg).length > 0) {
                 REGISTRY = parsed.reg;
                 REGISTRY_VERSION = parsed.version || "";
-                console.log(`📦 Loaded ${Object.keys(REGISTRY).length} cached sites (version: ${REGISTRY_VERSION})`);
+                console.log(`[CACHE] Loaded ${Object.keys(REGISTRY).length} cached sites (version: ${REGISTRY_VERSION})`);
             }
         }
     } catch (e) {
@@ -58,7 +58,7 @@ function initRegistry() {
     if (Object.keys(REGISTRY).length === 0) {
         try {
             REGISTRY = require('./registry.json');
-            console.log("✅ Registry loaded from local JSON fallback:", Object.keys(REGISTRY).length, "entries");
+            console.log("[OK] Registry loaded from local JSON fallback:", Object.keys(REGISTRY).length, "entries");
         } catch (e) {
             console.warn("Could not require registry.json, initializing empty:", e);
             REGISTRY = {};
@@ -82,7 +82,7 @@ async function syncRegistryFromServer(force = false) {
         const data = await res.json();
         if (data.status === "success" && data.version) {
             if (force || data.version !== REGISTRY_VERSION || Object.keys(REGISTRY).length !== data.entries) {
-                console.log(`🔄 Syncing registry: remote version ${data.version} (${data.entries} sites) vs local ${REGISTRY_VERSION} (${Object.keys(REGISTRY).length} sites)`);
+                console.log(`[SYNC] Syncing registry: remote version ${data.version} (${data.entries} sites) vs local ${REGISTRY_VERSION} (${Object.keys(REGISTRY).length} sites)`);
                 
                 if (data.registry) {
                     REGISTRY = data.registry;
