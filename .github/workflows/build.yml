@@ -1,0 +1,101 @@
+name: Build & Release NeoBrowser
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    name: Build Linux Packages (AppImage, deb, rpm, pacman, tar.gz)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install System Dependencies (ImageMagick, rpm, libarchive)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick rpm bsdtar
+
+      - name: Install Node Dependencies
+        run: npm ci || npm install
+
+      - name: Generate Cross-Platform Icons
+        run: npm run icons:generate
+
+      - name: Build Linux Targets
+        run: npm run dist:linux
+
+      - name: Upload Linux Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: neobrowser-linux-dist
+          path: |
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.rpm
+            dist/*.pkg.tar.zst
+            dist/*.tar.gz
+          retention-days: 14
+
+  build-windows:
+    name: Build Windows Packages (NSIS Installer, Portable, Zip)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Node Dependencies
+        run: npm ci || npm install
+
+      - name: Build Windows Targets
+        run: npm run dist:win
+
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: neobrowser-windows-dist
+          path: |
+            dist/*.exe
+            dist/*.zip
+          retention-days: 14
+
+  release:
+    name: Publish GitHub Release
+    needs: [build-linux, build-windows]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-artifacts/neobrowser-linux-dist/*
+            release-artifacts/neobrowser-windows-dist/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true

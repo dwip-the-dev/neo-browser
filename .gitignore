@@ -3,4 +3,10 @@ dist/
 *.AppImage
 *.dmg
 *.exe
+*.deb
+*.rpm
+*.pkg.tar.zst
+*.tar.gz
+*.zip
 *.log
+neobrowser.log

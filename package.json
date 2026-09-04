@@ -1,12 +1,25 @@
 {
   "name": "neobrowser",
-  "version": "5.3.2",
+  "version": "8.0.0",
   "main": "main.js",
   "type": "module",
   "description": "This uses Chromium viewer with Electron to render full HTML/CSS/JS. Left persistent rounded search/address bar, Black launch demo page, fetch://<domain>.neo direct navigation, Keyword search over registry.json (matches name or domain) with external Chromium browser.",
   "scripts": {
     "start": "electronmon .",
-    "dist": "electron-builder"
+    "build": "npm run dist",
+    "icons:generate": "node scripts/generate-icons.js",
+    "dist": "electron-builder",
+    "dist:linux": "electron-builder --linux",
+    "dist:linux:appimage": "electron-builder --linux AppImage",
+    "dist:linux:deb": "electron-builder --linux deb",
+    "dist:linux:rpm": "electron-builder --linux rpm",
+    "dist:linux:pacman": "electron-builder --linux pacman",
+    "dist:linux:tar": "electron-builder --linux tar.gz",
+    "dist:win": "electron-builder --win",
+    "dist:win:nsis": "electron-builder --win nsis",
+    "dist:win:portable": "electron-builder --win portable",
+    "dist:win:zip": "electron-builder --win zip",
+    "dist:all": "electron-builder --linux --win"
   },
   "nodemonConfig": {
     "watch": ["."],
@@ -39,26 +52,84 @@
   "build": {
     "appId": "com.dwip.neobrowser",
     "productName": "NeoBrowser",
+    "executableName": "neobrowser",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "build"
     },
     "files": [
-      "**/*"
+      "**/*",
+      "!dist/**",
+      "!server.py",
+      "!neobrowser.log",
+      "!**/*.log",
+      "!.git/**",
+      "!.github/**"
+    ],
+    "protocols": [
+      {
+        "name": "NeoBrowser Protocol",
+        "schemes": [
+          "fetch"
+        ]
+      }
     ],
     "win": {
       "target": [
-        "nsis",
-        "zip"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
-      "icon": "icon.jpg"
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "NeoBrowser",
+      "uninstallDisplayName": "NeoBrowser"
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-portable.exe"
     },
     "linux": {
       "target": [
         "AppImage",
-        "deb"
+        "deb",
+        "rpm",
+        "pacman",
+        "tar.gz"
       ],
-      "category": "Utility",
-      "icon": "icon.png"
+      "category": "Network;WebBrowser;",
+      "icon": "build/icons",
+      "maintainer": "Dwip Biswas <dwipbiswas@yahoo.com>",
+      "synopsis": "Decentralized, privacy-first web browser",
+      "description": "NeoBrowser is a lightweight, privacy-first decentralized browser for navigating .neo domains.",
+      "desktop": {
+        "Name": "NeoBrowser",
+        "Comment": "Decentralized Web Browser",
+        "Categories": "Network;WebBrowser;",
+        "MimeType": "x-scheme-handler/fetch;text/html;application/xhtml+xml;"
+      }
+    },
+    "deb": {
+      "priority": "optional"
     }
   }
 }

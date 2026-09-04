@@ -1,8 +1,30 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import fetch from 'node-fetch';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const appIconPath = path.join(__dirname, 'assets', 'icon.png');
 
 let mainWindow;
 let GLOBAL_SERVER_URL = null;
+
+// ===== SINGLE INSTANCE LOCK =====
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+    app.quit();
+} else {
+    app.on('second-instance', () => {
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) mainWindow.restore();
+            mainWindow.focus();
+        }
+    });
+}
+
+// Register fetch:// protocol
+app.setAsDefaultProtocolClient('fetch');
 
 // ===== FETCH SERVER URL FROM GITHUB JSON =====
 async function loadServerURL() {
@@ -55,6 +77,9 @@ function createWindow() {
         height: 800,
         minWidth: 800,
         minHeight: 600,
+        title: "NeoBrowser",
+        icon: appIconPath,
+        autoHideMenuBar: true,
         backgroundColor: '#0b0b0b',
         show: false,
         webPreferences: {
@@ -127,6 +152,9 @@ ipcMain.on('open-neogoogle', () => {
         height: 700,
         minWidth: 600,
         minHeight: 400,
+        title: "NeoGoogle - Web Search",
+        icon: appIconPath,
+        autoHideMenuBar: true,
         backgroundColor: '#0b0b0b',
         webPreferences: {
             nodeIntegration: true,

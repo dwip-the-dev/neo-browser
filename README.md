@@ -66,9 +66,29 @@ A **fully decentralized, privacy-first web browser** built on Electron. Lightwei
    ```
 
 3. **Build for production**
-   ```bash
-   npm run build
-   ```
+   - **Build for all Linux formats** (AppImage, deb, rpm, pacman, tar.gz):
+     ```bash
+     npm run dist:linux
+     ```
+   - **Build for Windows** (NSIS installer, Portable exe, Zip):
+     ```bash
+     npm run dist:win
+     ```
+   - **Build all platforms**:
+     ```bash
+     npm run dist:all
+     ```
+   - **Granular platform targets**:
+     ```bash
+     npm run dist:linux:appimage # Universal Linux AppImage
+     npm run dist:linux:deb      # Debian / Ubuntu package
+     npm run dist:linux:rpm      # Fedora / Red Hat / openSUSE RPM
+     npm run dist:linux:pacman   # Arch Linux / Manjaro pacman package
+     npm run dist:linux:tar      # Universal portable tarball
+     npm run dist:win:nsis       # Windows installer setup .exe
+     npm run dist:win:portable   # Standalone portable .exe
+     npm run dist:win:zip        # Windows portable zip archive
+     ```
 
 ---
 
@@ -110,8 +130,9 @@ All requests automatically route to this dynamically resolved endpoint, providin
 - [x] 45 Decentralized sites 100% operational
 - [x] 4-site randomized discovery grid
 - [x] Vercel Serverless cloud backend
-- [ ] Multi-tab support
-- [ ] Windows app build
+- [x] Multi-tab support (Chrome-style tabs, history, downloads)
+- [x] Cross-platform builds: Universal Linux (AppImage, deb, rpm, pacman, tar.gz)
+- [x] Cross-platform builds: Windows (NSIS Installer, Portable exe, Zip)
 - [ ] Mobile builds (Android / iOS)
 
 ---
