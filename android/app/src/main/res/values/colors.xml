@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Backgrounds -->
+    <color name="bg_base">#09090B</color>
+    <color name="bg_surface">#121218</color>
+    <color name="bg_surface_elevated">#1A1A24</color>
+    <color name="bg_surface_card">#20202C</color>
+    <color name="bg_pill">#282836</color>
+
+    <!-- Accents -->
+    <color name="primary">#8B5CF6</color>
+    <color name="primary_light">#C084FC</color>
+    <color name="accent_cyan">#38BDF8</color>
+    <color name="accent_emerald">#22C55E</color>
+    <color name="status_error">#EF4444</color>
+    <color name="status_connecting">#F59E0B</color>
+
+    <!-- Text -->
+    <color name="text_main">#F4F4F5</color>
+    <color name="text_secondary">#D1D5DB</color>
+    <color name="text_muted">#9CA3AF</color>
+
+    <!-- Borders & Dividers -->
+    <color name="border_subtle">#1FFFFFFF</color>
+    <color name="border_medium">#2EFFFFFF</color>
+    <color name="border_active">#4F46E5</color>
+
+    <!-- Controls -->
+    <color name="ripple_light">#26FFFFFF</color>
+    <color name="tab_active_bg">#252535</color>
+    <color name="tab_inactive_bg">#14141C</color>
+</resources>

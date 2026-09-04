@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+# Self-bootstrapping Gradle Wrapper script
+set -e
+
+DIR="$(cd "$(dirname "$0")" && pwd)"
+WRAPPER_JAR="$DIR/gradle/wrapper/gradle-wrapper.jar"
+WRAPPER_PROPS="$DIR/gradle/wrapper/gradle-wrapper.properties"
+
+if [ ! -f "$WRAPPER_JAR" ]; then
+    echo "[INFO] Bootstrapping Gradle Wrapper..."
+    mkdir -p "$DIR/gradle/wrapper"
+    curl -sL "https://raw.githubusercontent.com/gradle/gradle/master/gradle/wrapper/gradle-wrapper.jar" -o "$WRAPPER_JAR" || {
+        echo "[WARN] Could not download gradle-wrapper.jar automatically. Using system gradle or android studio."
+    }
+fi
+
+if [ -f "$WRAPPER_JAR" ]; then
+    exec java -jar "$WRAPPER_JAR" "$@"
+else
+    exec gradle "$@"
+fi

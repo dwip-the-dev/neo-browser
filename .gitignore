@@ -10,3 +10,11 @@ dist/
 *.zip
 *.log
 neobrowser.log
+
+# Android build artifacts and local configs
+android/.gradle/
+android/app/build/
+android/local.properties
+android/.idea/
+android/*.iml
+android/app/*.iml

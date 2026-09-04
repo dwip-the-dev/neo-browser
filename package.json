@@ -60,6 +60,7 @@
     "files": [
       "**/*",
       "!dist/**",
+      "!android/**",
       "!server.py",
       "!neobrowser.log",
       "!**/*.log",

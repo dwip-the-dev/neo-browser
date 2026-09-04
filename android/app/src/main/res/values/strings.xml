@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NeoBrowser</string>
+    <string name="omnibox_hint">Search .neo network or enter domain…</string>
+    <string name="connecting">Connecting to Neo Server…</string>
+    <string name="online">%1$d Sites Online</string>
+    <string name="offline">Server Offline</string>
+    <string name="new_tab">New Tab</string>
+    <string name="tabs">Tabs</string>
+    <string name="bookmarks">Bookmarks</string>
+    <string name="history">History</string>
+    <string name="downloads">Downloads</string>
+    <string name="p2p_share">P2P Drop</string>
+    <string name="clear">Clear</string>
+    <string name="close">Close</string>
+    <string name="retry">Retry</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- Notification Channels -->
+    <string name="channel_downloads">File Downloads</string>
+    <string name="channel_downloads_desc">Shows progress of file downloads in NeoBrowser</string>
+    <string name="channel_uploads">File Uploads</string>
+    <string name="channel_uploads_desc">Shows progress of file uploads and P2P transfers</string>
+    <string name="download_started">Download Started</string>
+    <string name="download_complete">Download Complete</string>
+    <string name="download_failed">Download Failed</string>
+    <string name="upload_started">Upload Started</string>
+    <string name="upload_complete">Upload Complete</string>
+    <string name="upload_failed">Upload Failed</string>
+</resources>
