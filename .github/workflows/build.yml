@@ -36,6 +36,8 @@ jobs:
 
       - name: Build Linux Targets
         run: npm run dist:linux
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Linux Artifacts
         uses: actions/upload-artifact@v4
@@ -66,7 +68,9 @@ jobs:
         run: npm ci || npm install
 
       - name: Build Windows Targets
-        run: npm run dist:win
+        run: npm run dist:win || npm run dist:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Windows Artifacts
         uses: actions/upload-artifact@v4
