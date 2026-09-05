@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/card_tab"
     android:layout_width="match_parent"
-    android:layout_height="120dp"
+    android:layout_height="130dp"
     android:layout_margin="6dp"
     android:clickable="true"
     android:focusable="true"
-    app:cardBackgroundColor="@color/bg_surface_card"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardBackgroundColor="@color/chrome_surface_elevated"
     app:cardCornerRadius="14dp"
-    app:cardElevation="2dp">
+    app:cardElevation="2dp"
+    app:strokeColor="@color/chrome_divider"
+    app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,15 +20,24 @@
         android:orientation="vertical"
         android:padding="10dp">
 
+        <!-- Top Row: Icon + Title + Close Button -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical">
 
+            <ImageView
+                android:id="@+id/tab_favicon"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_shield_neo"
+                app:tint="@color/accent_cyan" />
+
             <TextView
                 android:id="@+id/tab_title"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
@@ -36,38 +48,43 @@
 
             <ImageView
                 android:id="@+id/btn_close_tab"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Close tab"
-                android:padding="4dp"
-                android:src="@android:drawable/ic_menu_close_clear_cancel"
-                app:tint="@color/text_muted" />
+                android:padding="5dp"
+                android:src="@drawable/ic_close"
+                app:tint="@color/chrome_icon_muted" />
         </LinearLayout>
 
+        <!-- URL Subtitle -->
         <TextView
             android:id="@+id/tab_url"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="4dp"
             android:ellipsize="end"
             android:maxLines="1"
             android:text="fetch://home.neo/"
-            android:textColor="@color/accent_cyan"
+            android:textColor="@color/chrome_icon_muted"
             android:textSize="11sp" />
 
         <View
             android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginVertical="6dp"
-            android:background="@color/border_subtle" />
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
+        <!-- Status Chip / Badge -->
         <TextView
             android:id="@+id/tab_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Active Tab"
-            android:textColor="@color/primary_light"
-            android:textSize="10.5sp" />
+            android:background="@drawable/bg_pill_accent"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:text="Active"
+            android:textColor="@color/accent_cyan"
+            android:textSize="10sp"
+            android:textStyle="bold" />
     </LinearLayout>
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

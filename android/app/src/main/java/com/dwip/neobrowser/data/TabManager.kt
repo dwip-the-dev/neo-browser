@@ -7,7 +7,8 @@ data class NeoTab(
     var url: String,
     var title: String,
     var domain: String,
-    var webView: WebView? = null
+    var webView: WebView? = null,
+    var isDesktopMode: Boolean = false
 )
 
 class TabManager {

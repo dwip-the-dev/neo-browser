@@ -3,6 +3,8 @@ package com.dwip.neobrowser.data
 import com.dwip.neobrowser.network.NeoSite
 
 object BookmarkManager {
+    private val customBookmarks = mutableListOf<NeoSite>()
+
     val defaultBookmarks = listOf(
         NeoSite("share.neo", "NeoShare P2P Drop", "sites/official/share/index.html", "Official", "SH"),
         NeoSite("neural-chat.neo", "NeuralChat AI", "sites/ai/neural-chat/index.html", "AI", "AI"),
@@ -15,4 +17,32 @@ object BookmarkManager {
         NeoSite("user.neo", "Neo User Directory", "sites/official/user/index.html", "Identity", "ID"),
         NeoSite("solar-system-3d.neo", "3D Cosmos Explorer", "sites/science/solar-system-3d/index.html", "Science", "3D")
     )
+
+    fun getAllBookmarks(): List<NeoSite> = customBookmarks + defaultBookmarks
+
+    fun isBookmarked(domainOrUrl: String): Boolean {
+        if (domainOrUrl.isEmpty()) return false
+        val clean = domainOrUrl.replace("fetch://", "").replace("https://", "").replace("http://", "").trimEnd('/')
+        return getAllBookmarks().any {
+            it.domain.equals(clean, ignoreCase = true) ||
+            clean.contains(it.domain, ignoreCase = true) ||
+            (it.path.isNotEmpty() && domainOrUrl.contains(it.path, ignoreCase = true))
+        }
+    }
+
+    fun toggleBookmark(name: String, domainOrUrl: String): Boolean {
+        val clean = domainOrUrl.replace("fetch://", "").replace("https://", "").replace("http://", "").trimEnd('/')
+        val existingIndex = customBookmarks.indexOfFirst {
+            it.domain.equals(clean, ignoreCase = true) || clean.contains(it.domain, ignoreCase = true)
+        }
+        return if (existingIndex != -1) {
+            customBookmarks.removeAt(existingIndex)
+            false
+        } else {
+            val title = if (name.isNotEmpty() && name != "NeoSearch") name else clean
+            customBookmarks.add(0, NeoSite(clean, title, "", "User", clean.take(2).uppercase()))
+            true
+        }
+    }
 }
+

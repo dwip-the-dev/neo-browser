@@ -5,129 +5,245 @@
     android:id="@+id/root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_base">
+    android:background="@color/chrome_bg">
 
-    <!-- Top App Bar Chrome - Sleek Minimal Address Bar -->
+    <!-- Chrome Top App Bar Container (gets dynamic status bar + cutout insets in Kotlin) -->
     <LinearLayout
         android:id="@+id/top_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/bg_surface"
-        android:elevation="3dp"
+        android:background="@color/chrome_surface"
+        android:elevation="4dp"
         android:orientation="vertical"
-        android:paddingTop="6dp"
-        android:paddingBottom="4dp"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Single Omnibox Search / Address Bar Row -->
+        <!-- Top Bar Content Row (Height 56dp) -->
         <LinearLayout
+            android:id="@+id/toolbar_content_row"
             android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:layout_marginHorizontal="10dp"
-            android:background="@drawable/bg_omnibox"
+            android:layout_height="56dp"
             android:gravity="center_vertical"
+            android:orientation="horizontal"
             android:paddingHorizontal="10dp">
 
-            <!-- Server Status Dot (subtle network status indicator) -->
-            <View
-                android:id="@+id/status_dot"
-                android:layout_width="8dp"
-                android:layout_height="8dp"
-                android:layout_marginEnd="6dp"
-                android:background="@color/accent_emerald" />
-
-            <!-- Protocol Badge -->
-            <TextView
-                android:id="@+id/protocol_badge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="fetch://"
-                android:textColor="@color/accent_cyan"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
-            <!-- Omnibox Input -->
-            <EditText
-                android:id="@+id/omnibox_input"
+            <!-- Chrome Omnibox Capsule / Pill -->
+            <LinearLayout
+                android:id="@+id/omnibox_container"
                 android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginStart="6dp"
+                android:layout_height="44dp"
                 android:layout_weight="1"
-                android:background="@null"
-                android:hint="@string/omnibox_hint"
-                android:imeOptions="actionGo"
-                android:inputType="textUri|textNoSuggestions"
-                android:maxLines="1"
-                android:textColor="@color/text_main"
-                android:textColorHint="@color/text_muted"
-                android:textSize="13.5sp" />
+                android:background="@drawable/bg_chrome_omnibox"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="12dp">
 
-            <!-- Clear Action -->
+                <!-- Security / Neo Badge Icon -->
+                <ImageView
+                    android:id="@+id/security_icon"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:src="@drawable/ic_lock"
+                    app:tint="@color/chrome_security_green" />
+
+                <!-- Display Domain / Title (Browsing Mode) -->
+                <TextView
+                    android:id="@+id/omnibox_display_title"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:gravity="center_vertical"
+                    android:maxLines="1"
+                    android:text="NeoSearch"
+                    android:textColor="@color/text_main"
+                    android:textSize="14sp"
+                    android:textStyle="normal"
+                    android:visibility="gone" />
+
+                <!-- Input EditText (Editing Mode) -->
+                <EditText
+                    android:id="@+id/omnibox_input"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:hint="@string/omnibox_hint"
+                    android:imeOptions="actionGo"
+                    android:inputType="textUri|textNoSuggestions"
+                    android:maxLines="1"
+                    android:textColor="@color/text_main"
+                    android:textColorHint="@color/chrome_icon_muted"
+                    android:textSize="14sp" />
+
+                <!-- Clear Text Button ('X') -->
+                <ImageView
+                    android:id="@+id/btn_clear"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="5dp"
+                    android:src="@drawable/ic_close"
+                    android:visibility="gone"
+                    app:tint="@color/chrome_icon_muted" />
+
+                <!-- Refresh / Reload Button inside pill -->
+                <ImageView
+                    android:id="@+id/btn_refresh"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="5dp"
+                    android:src="@drawable/ic_refresh"
+                    app:tint="@color/chrome_icon_muted" />
+
+            </LinearLayout>
+
+            <!-- Chrome Tab Switcher Button (Outside Pill) -->
+            <FrameLayout
+                android:id="@+id/btn_tabs_top"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="6dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true">
+
+                <FrameLayout
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_tab_box">
+
+                    <TextView
+                        android:id="@+id/tab_count_top"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:text="1"
+                        android:textColor="@color/chrome_icon"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </FrameLayout>
+            </FrameLayout>
+
+            <!-- Chrome 3-Dot More Menu Button -->
             <ImageView
-                android:id="@+id/btn_clear"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:id="@+id/btn_more_menu"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"
-                android:padding="5dp"
-                android:src="@android:drawable/ic_menu_close_clear_cancel"
-                android:visibility="gone"
-                app:tint="@color/text_muted" />
+                android:padding="8dp"
+                android:src="@drawable/ic_more_vert"
+                app:tint="@color/chrome_icon" />
 
-            <!-- Go / Navigate Action -->
-            <ImageView
-                android:id="@+id/btn_go"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="5dp"
-                android:src="@android:drawable/ic_media_play"
-                app:tint="@color/primary_light" />
         </LinearLayout>
 
-        <!-- Dynamic Loading Line -->
+        <!-- Chrome Thin Horizontal Progress Bar -->
         <ProgressBar
             android:id="@+id/loading_bar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:layout_marginTop="3dp"
+            android:layout_height="2.5dp"
             android:max="100"
             android:progress="0"
-            android:progressTint="@color/accent_cyan"
+            android:progressTint="@color/chrome_accent"
             android:visibility="invisible" />
 
-        <!-- Hidden views to preserve ViewBinding backward-compatibility -->
-        <View
-            android:id="@+id/btn_brand"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:visibility="gone" />
-        <View
-            android:id="@+id/btn_p2p_drop"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:visibility="gone" />
-        <TextView
-            android:id="@+id/status_text"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:visibility="gone" />
+        <!-- Hidden views to preserve any legacy ViewBinding references -->
+        <View android:id="@+id/status_dot" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+        <TextView android:id="@+id/protocol_badge" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+        <ImageView android:id="@+id/btn_go" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+        <View android:id="@+id/btn_brand" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+        <View android:id="@+id/btn_p2p_drop" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+        <TextView android:id="@+id/status_text" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     </LinearLayout>
 
-    <!-- WebView Container (Direct touch - no swipe-to-refresh interference) -->
+    <!-- Floating Find in Page Bar -->
+    <LinearLayout
+        android:id="@+id/find_in_page_bar"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@color/chrome_surface_elevated"
+        android:elevation="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/top_bar">
+
+        <EditText
+            android:id="@+id/find_query_input"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@null"
+            android:hint="Find in page…"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:maxLines="1"
+            android:textColor="@color/text_main"
+            android:textColorHint="@color/chrome_icon_muted"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/find_match_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="8dp"
+            android:text="0/0"
+            android:textColor="@color/chrome_icon_muted"
+            android:textSize="12sp" />
+
+        <ImageView
+            android:id="@+id/btn_find_prev"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="6dp"
+            android:rotation="90"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="@color/chrome_icon" />
+
+        <ImageView
+            android:id="@+id/btn_find_next"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="6dp"
+            android:rotation="90"
+            android:src="@drawable/ic_arrow_forward"
+            app:tint="@color/chrome_icon" />
+
+        <ImageView
+            android:id="@+id/btn_find_close"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="6dp"
+            android:src="@drawable/ic_close"
+            app:tint="@color/chrome_icon" />
+    </LinearLayout>
+
+    <!-- WebView Content Container -->
     <FrameLayout
         android:id="@+id/webview_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:background="@color/bg_base"
+        android:background="@color/chrome_bg"
         app:layout_constraintBottom_toTopOf="@id/bottom_bar"
         app:layout_constraintTop_toBottomOf="@id/top_bar">
-
-        <!-- Dynamic WebViews are attached here per tab -->
 
         <!-- Offline / Error Overlay -->
         <LinearLayout
@@ -140,8 +256,8 @@
             android:visibility="gone">
 
             <ImageView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
                 android:src="@android:drawable/ic_dialog_alert"
                 app:tint="@color/status_error" />
 
@@ -149,7 +265,7 @@
                 android:id="@+id/error_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="16dp"
                 android:text="Site Not Reachable"
                 android:textColor="@color/text_main"
                 android:textSize="18sp"
@@ -161,7 +277,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:gravity="center"
-                android:text="Unable to connect to Neo server or resolve site."
+                android:text="Unable to connect to Neo server or resolve decentralized site."
                 android:textColor="@color/text_muted"
                 android:textSize="13sp" />
 
@@ -169,10 +285,11 @@
                 android:id="@+id/btn_retry"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:backgroundTint="@color/primary"
-                android:text="Retry"
-                android:textColor="#FFFFFF" />
+                android:layout_marginTop="20dp"
+                android:backgroundTint="@color/accent_cyan"
+                android:text="Try Again"
+                android:textColor="#09090B"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <!-- Fullscreen Video Container -->
@@ -185,95 +302,95 @@
 
     </FrameLayout>
 
-    <!-- Bottom Navigation Bar Chrome -->
+    <!-- Chrome-Style Bottom Navigation Bar (Gets dynamic navigation bar insets in Kotlin) -->
     <LinearLayout
         android:id="@+id/bottom_bar"
         android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:background="@color/bg_surface"
+        android:layout_height="wrap_content"
+        android:background="@color/chrome_surface"
         android:elevation="8dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="6dp"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- Back Button -->
-        <ImageButton
-            android:id="@+id/btn_back"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Back"
-            android:src="@android:drawable/ic_media_previous"
-            app:tint="@color/text_muted" />
+        <!-- Top Divider Line -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/chrome_divider" />
 
-        <!-- Forward Button -->
-        <ImageButton
-            android:id="@+id/btn_forward"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Forward"
-            android:src="@android:drawable/ic_media_next"
-            app:tint="@color/text_muted" />
+        <!-- Bottom Actions Row (Height 52dp) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <!-- NeoSearch Home Button -->
-        <ImageButton
-            android:id="@+id/btn_home"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Home"
-            android:src="@android:drawable/ic_menu_today"
-            app:tint="@color/primary_light" />
+            <!-- Back -->
+            <ImageButton
+                android:id="@+id/btn_back"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Back"
+                android:src="@drawable/ic_arrow_back"
+                app:tint="@color/chrome_icon" />
 
-        <!-- Bookmarks Sheet Button -->
-        <ImageButton
-            android:id="@+id/btn_bookmarks"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Bookmarks"
-            android:src="@android:drawable/btn_star"
-            app:tint="@color/text_muted" />
+            <!-- Forward -->
+            <ImageButton
+                android:id="@+id/btn_forward"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Forward"
+                android:src="@drawable/ic_arrow_forward"
+                app:tint="@color/chrome_icon" />
 
-        <!-- Tabs Switcher Badge Button -->
-        <FrameLayout
-            android:id="@+id/btn_tabs"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:clickable="true"
-            android:focusable="true">
+            <!-- Home -->
+            <ImageButton
+                android:id="@+id/btn_home"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Home"
+                android:src="@drawable/ic_home"
+                app:tint="@color/chrome_icon" />
 
-            <TextView
-                android:id="@+id/tab_count_badge"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:layout_gravity="center"
-                android:background="@drawable/bg_pill_accent"
-                android:gravity="center"
-                android:text="1"
-                android:textColor="@color/primary_light"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-        </FrameLayout>
+            <!-- Bookmarks Star -->
+            <ImageButton
+                android:id="@+id/btn_bookmarks"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Bookmarks"
+                android:src="@drawable/ic_star_outline"
+                app:tint="@color/chrome_icon" />
 
-        <!-- More / Downloads Menu -->
-        <ImageButton
-            android:id="@+id/btn_downloads"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Downloads"
-            android:src="@android:drawable/stat_sys_download_done"
-            android:visibility="gone"
-            app:tint="@color/text_muted" />
+            <!-- Share Button -->
+            <ImageButton
+                android:id="@+id/btn_share"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Share"
+                android:src="@drawable/ic_share"
+                app:tint="@color/chrome_icon" />
+
+            <!-- Hidden legacy views -->
+            <FrameLayout
+                android:id="@+id/btn_tabs"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone">
+                <TextView android:id="@+id/tab_count_badge" android:layout_width="0dp" android:layout_height="0dp" />
+            </FrameLayout>
+            <ImageButton android:id="@+id/btn_downloads" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+
+        </LinearLayout>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

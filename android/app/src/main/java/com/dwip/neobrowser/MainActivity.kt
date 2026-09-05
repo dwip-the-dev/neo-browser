@@ -3,26 +3,35 @@ package com.dwip.neobrowser
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.webkit.CookieManager
 import android.webkit.URLUtil
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.OneTimeWorkRequestBuilder
@@ -33,11 +42,12 @@ import com.dwip.neobrowser.data.NeoTab
 import com.dwip.neobrowser.data.TabManager
 import com.dwip.neobrowser.databinding.ActivityMainBinding
 import com.dwip.neobrowser.databinding.DialogBookmarksBinding
+import com.dwip.neobrowser.databinding.DialogChromeMenuBinding
 import com.dwip.neobrowser.databinding.DialogTabsBinding
-import com.dwip.neobrowser.network.NeoSite
 import com.dwip.neobrowser.network.ServerManager
 import com.dwip.neobrowser.worker.DownloadWorker
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -66,17 +76,30 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.RequestMultiplePermissions()
     ) { _ -> }
 
-    // Fullscreen Custom View
+    // Fullscreen Custom View (HTML5 video)
     private var customView: View? = null
     private var customViewCallback: WebChromeClient.CustomViewCallback? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Edge-to-edge system window configuration
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.statusBarColor = Color.TRANSPARENT
+        window.navigationBarColor = Color.TRANSPARENT
+        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+        insetsController.isAppearanceLightStatusBars = false
+        insetsController.isAppearanceLightNavigationBars = false
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        setupWindowInsets()
+        setupBackNavigation()
         requestRequiredPermissions()
-        setupListeners()
+        setupOmniboxAndToolbar()
+        setupFindInPage()
+        setupBottomBar()
         initializeNetworkAndServer()
 
         // Create initial tab
@@ -86,6 +109,58 @@ class MainActivity : AppCompatActivity() {
 
         // Handle intent data if opened via URL scheme
         handleIntent(intent)
+    }
+
+    private fun setupWindowInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
+            val topInset = windowInsets.getInsets(
+                WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.displayCutout()
+            ).top
+            val bottomInset = windowInsets.getInsets(
+                WindowInsetsCompat.Type.navigationBars()
+            ).bottom
+
+            // Ensure top bar sits safely below status bar, notch, and Dynamic Island
+            binding.topBar.setPadding(0, topInset, 0, 0)
+
+            // Ensure bottom navigation bar sits safely above system navigation / gesture pill
+            binding.bottomBar.setPadding(0, 0, 0, bottomInset)
+
+            windowInsets
+        }
+    }
+
+    private fun setupBackNavigation() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (customView != null) {
+                    binding.fullscreenCustomView.removeView(customView)
+                    binding.fullscreenCustomView.isVisible = false
+                    customViewCallback?.onCustomViewHidden()
+                    customView = null
+                    customViewCallback = null
+                    return
+                }
+
+                if (binding.findInPageBar.isVisible) {
+                    closeFindInPage()
+                    return
+                }
+
+                val activeTab = tabManager.getActiveTab()
+                if (activeTab?.webView?.canGoBack() == true) {
+                    activeTab.webView?.goBack()
+                } else if (tabManager.count > 1) {
+                    val activeId = tabManager.activeTabId
+                    val nextTab = tabManager.closeTab(activeId)
+                    if (nextTab != null) switchToTab(nextTab.id)
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                    isEnabled = true
+                }
+            }
+        })
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -115,41 +190,38 @@ class MainActivity : AppCompatActivity() {
 
     private fun initializeNetworkAndServer() {
         lifecycleScope.launch {
-            binding.statusText.text = "Connecting…"
-            binding.statusDot.setBackgroundColor(ContextCompat.getColor(this@MainActivity, R.color.status_connecting))
-
             ServerManager.initializeServerUrl()
             ServerManager.syncRegistry()
 
-            // Check server status loop
             while (isActive) {
-                val status = ServerManager.checkServerStatus()
-                withContext(Dispatchers.Main) {
-                    if (status.status == "online") {
-                        binding.statusDot.setBackgroundColor(ContextCompat.getColor(this@MainActivity, R.color.accent_emerald))
-                        val siteCount = if (status.entries > 0) status.entries else ServerManager.registry.size
-                        binding.statusText.text = getString(R.string.online, siteCount)
-                    } else {
-                        binding.statusDot.setBackgroundColor(ContextCompat.getColor(this@MainActivity, R.color.status_error))
-                        binding.statusText.text = getString(R.string.offline)
-                    }
-                }
+                ServerManager.checkServerStatus()
                 delay(20000)
             }
         }
     }
 
-    private fun setupListeners() {
-        // Omnibox Actions
-        binding.btnGo.setOnClickListener {
-            val query = binding.omniboxInput.text.toString().trim()
-            if (query.isNotEmpty()) loadUrlOrDomain(query)
+    private fun setupOmniboxAndToolbar() {
+        // Omnibox Input Focus & Clear Button
+        binding.omniboxInput.setOnFocusChangeListener { _, hasFocus ->
+            binding.btnClear.isVisible = hasFocus && binding.omniboxInput.text?.isNotEmpty() == true
+            if (hasFocus) {
+                binding.omniboxInput.selectAll()
+            }
         }
+
+        binding.omniboxInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                binding.btnClear.isVisible = binding.omniboxInput.hasFocus() && !s.isNullOrEmpty()
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
 
         binding.omniboxInput.setOnEditorActionListener { _, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_GO || (event != null && event.keyCode == KeyEvent.KEYCODE_ENTER)) {
                 val query = binding.omniboxInput.text.toString().trim()
                 if (query.isNotEmpty()) loadUrlOrDomain(query)
+                binding.omniboxInput.clearFocus()
                 hideKeyboard()
                 true
             } else {
@@ -158,22 +230,100 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnClear.setOnClickListener {
-            binding.omniboxInput.text.clear()
+            binding.omniboxInput.text?.clear()
             binding.btnClear.isVisible = false
+            binding.omniboxInput.requestFocus()
+            val imm = getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager
+            imm?.showSoftInput(binding.omniboxInput, InputMethodManager.SHOW_IMPLICIT)
         }
 
-
-
-        // Top Navigation Buttons
-        binding.btnBrand.setOnClickListener {
-            loadNeoSearchHome()
+        binding.btnRefresh.setOnClickListener {
+            tabManager.getActiveTab()?.webView?.reload()
         }
 
-        binding.btnP2pDrop.setOnClickListener {
-            loadUrlOrDomain("share.neo")
+        binding.securityIcon.setOnClickListener {
+            val activeTab = tabManager.getActiveTab()
+            val url = activeTab?.webView?.url ?: activeTab?.url ?: ""
+            val isNeo = url.contains("/site/") || url.startsWith("fetch://") || url.contains(".neo")
+            val msg = if (isNeo) {
+                "Decentralized Neo Protocol v2.0\nPeer-to-peer verified connection."
+            } else if (url.startsWith("https://")) {
+                "Connection is Secure (HTTPS)\nYour information is private when sent to this site."
+            } else {
+                "Site Connection\nDomain: ${formatDisplayUrl(url)}"
+            }
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
         }
 
-        // Bottom Navigation Bar
+        // Top Chrome Tab Box
+        binding.btnTabsTop.setOnClickListener {
+            showTabsDialog()
+        }
+
+        // Top Chrome 3-Dots Menu
+        binding.btnMoreMenu.setOnClickListener {
+            showChromeMenuDialog()
+        }
+
+        // Error retry
+        binding.btnRetry.setOnClickListener {
+            binding.errorOverlay.isVisible = false
+            tabManager.getActiveTab()?.webView?.reload()
+        }
+    }
+
+    private fun setupFindInPage() {
+        binding.findQueryInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val query = s?.toString().orEmpty()
+                val activeTab = tabManager.getActiveTab()
+                if (query.isNotEmpty()) {
+                    activeTab?.webView?.findAllAsync(query)
+                } else {
+                    activeTab?.webView?.clearMatches()
+                    binding.findMatchCount.text = "0/0"
+                }
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
+        binding.findQueryInput.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                tabManager.getActiveTab()?.webView?.findNext(true)
+                true
+            } else false
+        }
+
+        binding.btnFindNext.setOnClickListener {
+            tabManager.getActiveTab()?.webView?.findNext(true)
+        }
+
+        binding.btnFindPrev.setOnClickListener {
+            tabManager.getActiveTab()?.webView?.findNext(false)
+        }
+
+        binding.btnFindClose.setOnClickListener {
+            closeFindInPage()
+        }
+    }
+
+    private fun openFindInPage() {
+        binding.findInPageBar.isVisible = true
+        binding.findQueryInput.requestFocus()
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager
+        imm?.showSoftInput(binding.findQueryInput, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    private fun closeFindInPage() {
+        tabManager.getActiveTab()?.webView?.clearMatches()
+        binding.findInPageBar.isVisible = false
+        binding.findQueryInput.text?.clear()
+        binding.findMatchCount.text = "0/0"
+        hideKeyboard()
+    }
+
+    private fun setupBottomBar() {
         binding.btnBack.setOnClickListener {
             val activeTab = tabManager.getActiveTab()
             if (activeTab?.webView?.canGoBack() == true) {
@@ -193,32 +343,39 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnBookmarks.setOnClickListener {
+            val activeTab = tabManager.getActiveTab()
+            val url = activeTab?.webView?.url ?: activeTab?.url ?: ""
+            val title = activeTab?.title ?: "Neo Site"
+            val display = formatDisplayUrl(url)
+            val added = BookmarkManager.toggleBookmark(title, if (display.isNotEmpty()) display else url)
+            updateBookmarkStarState(display, url)
+            Toast.makeText(
+                this,
+                if (added) "Saved to bookmarks" else "Removed from bookmarks",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        binding.btnBookmarks.setOnLongClickListener {
             showBookmarksDialog()
+            true
         }
 
-        binding.btnTabs.setOnClickListener {
-            showTabsDialog()
-        }
-
-        binding.btnDownloads.setOnClickListener {
-            val intent = Intent(android.app.DownloadManager.ACTION_VIEW_DOWNLOADS)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            try {
-                startActivity(intent)
-            } catch (_: Exception) {
-                Toast.makeText(this, "Downloads folder opened", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        // Error retry
-        binding.btnRetry.setOnClickListener {
-            binding.errorOverlay.isVisible = false
-            tabManager.getActiveTab()?.webView?.reload()
+        binding.btnShare.setOnClickListener {
+            shareCurrentPage()
         }
     }
 
     private fun setupTabWebView(tab: NeoTab) {
         val webView = NeoWebView(this)
+
+        webView.setFindListener { activeMatchOrdinal, numberOfMatches, _ ->
+            if (numberOfMatches > 0) {
+                binding.findMatchCount.text = "${activeMatchOrdinal + 1}/$numberOfMatches"
+            } else {
+                binding.findMatchCount.text = "0/0"
+            }
+        }
 
         webView.webViewClient = NeoClient(
             onPageStartedCallback = { url ->
@@ -289,7 +446,7 @@ class MainActivity : AppCompatActivity() {
             t.webView?.isVisible = (t.id == tab.id)
         }
 
-        binding.tabCountBadge.text = tabManager.count.toString()
+        binding.tabCountTop.text = tabManager.count.toString()
 
         if (tab.url.isEmpty()) {
             loadNeoSearchHome()
@@ -306,7 +463,7 @@ class MainActivity : AppCompatActivity() {
         hideKeyboard()
 
         val targetUrl = when {
-            trimmed.startsWith("fetch://") || trimmed.endsWith(".neo") || trimmed.contains(".neo/") -> {
+            trimmed.startsWith("fetch://") || trimmed.endsWith(".neo") || trimmed.contains(".neo/") || trimmed.contains(".neo") -> {
                 val domain = trimmed.replace("fetch://", "").replace("https://", "").replace("http://", "").trimEnd('/')
                 activeTab.domain = domain
                 activeTab.url = "fetch://$domain/"
@@ -315,6 +472,11 @@ class MainActivity : AppCompatActivity() {
             trimmed.startsWith("http://") || trimmed.startsWith("https://") -> {
                 activeTab.url = trimmed
                 trimmed
+            }
+            trimmed.contains(".") && !trimmed.contains(" ") -> {
+                val withScheme = "https://$trimmed"
+                activeTab.url = withScheme
+                withScheme
             }
             else -> {
                 // Search query against Neo serverless endpoint
@@ -331,31 +493,102 @@ class MainActivity : AppCompatActivity() {
         activeTab.domain = ""
         activeTab.url = ""
         binding.omniboxInput.setText("")
-        binding.protocolBadge.text = "fetch://"
         activeTab.webView?.loadUrl(ServerManager.globalServerUrl)
     }
 
-    private fun updateOmniboxForUrl(url: String) {
-        if (url.contains("/site/")) {
-            val parts = url.split("/site/")
+    private fun formatDisplayUrl(rawUrl: String): String {
+        if (rawUrl.isEmpty()) return ""
+        if (rawUrl.contains("/site/")) {
+            val parts = rawUrl.split("/site/")
             if (parts.size > 1) {
-                val domain = parts[1].trimEnd('/')
-                binding.protocolBadge.text = "fetch://"
-                binding.omniboxInput.setText(domain)
-                binding.btnClear.isVisible = true
-                return
+                return parts[1].trimEnd('/')
             }
         }
-        binding.protocolBadge.text = if (url.startsWith("https")) "https://" else "http://"
-        binding.omniboxInput.setText(url)
-        binding.btnClear.isVisible = url.isNotEmpty()
+        if (rawUrl.contains("/search?query=")) {
+            val query = rawUrl.substringAfter("/search?query=")
+            return Uri.decode(query)
+        }
+        if (rawUrl.trimEnd('/') == ServerManager.globalServerUrl.trimEnd('/')) {
+            return "NeoSearch Portal"
+        }
+        return rawUrl.removePrefix("https://").removePrefix("http://").removePrefix("fetch://").trimEnd('/')
+    }
+
+    private fun updateOmniboxForUrl(url: String) {
+        val display = formatDisplayUrl(url)
+
+        if (!binding.omniboxInput.hasFocus()) {
+            binding.omniboxInput.setText(display)
+        }
+        binding.btnClear.isVisible = binding.omniboxInput.text?.isNotEmpty() == true && binding.omniboxInput.hasFocus()
+
+        val isNeo = url.contains("/site/") || url.startsWith("fetch://") || url.contains(".neo")
+        val isHttps = url.startsWith("https://")
+
+        if (isNeo) {
+            binding.securityIcon.setImageResource(R.drawable.ic_shield_neo)
+            binding.securityIcon.setColorFilter(ContextCompat.getColor(this, R.color.accent_cyan))
+        } else if (isHttps) {
+            binding.securityIcon.setImageResource(R.drawable.ic_lock)
+            binding.securityIcon.setColorFilter(ContextCompat.getColor(this, R.color.chrome_security_green))
+        } else {
+            binding.securityIcon.setImageResource(R.drawable.ic_lock)
+            binding.securityIcon.setColorFilter(ContextCompat.getColor(this, R.color.chrome_icon_muted))
+        }
+
+        updateNavigationButtons()
+        updateBookmarkStarState(display, url)
+    }
+
+    private fun updateBookmarkStarState(displayDomain: String, fullUrl: String) {
+        val isBm = BookmarkManager.isBookmarked(displayDomain) || BookmarkManager.isBookmarked(fullUrl)
+        binding.btnBookmarks.setImageResource(
+            if (isBm) R.drawable.ic_star_filled else R.drawable.ic_star_outline
+        )
+        binding.btnBookmarks.setColorFilter(
+            ContextCompat.getColor(
+                this,
+                if (isBm) R.color.accent_cyan else R.color.chrome_icon
+            )
+        )
     }
 
     private fun updateNavigationButtons() {
         val activeTab = tabManager.getActiveTab()
         val wv = activeTab?.webView
-        binding.btnBack.alpha = if (wv?.canGoBack() == true) 1.0f else 0.35f
-        binding.btnForward.alpha = if (wv?.canGoForward() == true) 1.0f else 0.35f
+        val canBack = wv?.canGoBack() == true
+        val canForward = wv?.canGoForward() == true
+
+        binding.btnBack.isEnabled = canBack
+        binding.btnBack.alpha = if (canBack) 1.0f else 0.35f
+
+        binding.btnForward.isEnabled = canForward
+        binding.btnForward.alpha = if (canForward) 1.0f else 0.35f
+    }
+
+    private fun shareCurrentPage() {
+        val activeTab = tabManager.getActiveTab() ?: return
+        val url = activeTab.webView?.url ?: activeTab.url
+        if (url.isEmpty()) {
+            Toast.makeText(this, "Nothing to share", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, activeTab.title.ifEmpty { "NeoBrowser Link" })
+            putExtra(Intent.EXTRA_TEXT, url)
+        }
+        startActivity(Intent.createChooser(shareIntent, "Share via"))
+    }
+
+    private fun openDownloadsFolder() {
+        val intent = Intent(android.app.DownloadManager.ACTION_VIEW_DOWNLOADS)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        try {
+            startActivity(intent)
+        } catch (_: Exception) {
+            Toast.makeText(this, "Downloads folder", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun startBackgroundDownload(url: String, fileName: String, mimeType: String, userAgent: String) {
@@ -375,15 +608,120 @@ class MainActivity : AppCompatActivity() {
         WorkManager.getInstance(this).enqueue(downloadWork)
     }
 
+    private fun showChromeMenuDialog() {
+        val dialog = BottomSheetDialog(this, R.style.Theme_NeoBrowser_BottomSheet)
+        val menuBinding = DialogChromeMenuBinding.inflate(layoutInflater)
+        dialog.setContentView(menuBinding.root)
+
+        val activeTab = tabManager.getActiveTab()
+        val wv = activeTab?.webView
+        val currentUrl = wv?.url ?: activeTab?.url ?: ""
+        val display = formatDisplayUrl(currentUrl)
+        val isBm = BookmarkManager.isBookmarked(display) || BookmarkManager.isBookmarked(currentUrl)
+
+        // Quick Action Row
+        menuBinding.menuBtnForward.isEnabled = wv?.canGoForward() == true
+        menuBinding.menuBtnForward.alpha = if (wv?.canGoForward() == true) 1.0f else 0.4f
+        menuBinding.menuBtnForward.setOnClickListener {
+            wv?.goForward()
+            dialog.dismiss()
+        }
+
+        menuBinding.menuBtnStar.setImageResource(
+            if (isBm) R.drawable.ic_star_filled else R.drawable.ic_star_outline
+        )
+        menuBinding.menuBtnStar.setColorFilter(
+            ContextCompat.getColor(this, if (isBm) R.color.accent_cyan else R.color.chrome_icon)
+        )
+        menuBinding.menuBtnStar.setOnClickListener {
+            val title = activeTab?.title ?: "Neo Site"
+            val domain = if (display.isNotEmpty()) display else currentUrl
+            val added = BookmarkManager.toggleBookmark(title, domain)
+            updateBookmarkStarState(domain, currentUrl)
+            Toast.makeText(
+                this,
+                if (added) "Saved to bookmarks" else "Removed from bookmarks",
+                Toast.LENGTH_SHORT
+            ).show()
+            dialog.dismiss()
+        }
+
+        menuBinding.menuBtnReload.setOnClickListener {
+            wv?.reload()
+            dialog.dismiss()
+        }
+
+        menuBinding.menuBtnShare.setOnClickListener {
+            dialog.dismiss()
+            shareCurrentPage()
+        }
+
+        // Menu Items
+        menuBinding.menuItemNewTab.setOnClickListener {
+            dialog.dismiss()
+            val newTab = tabManager.createTab("", "NeoSearch")
+            setupTabWebView(newTab)
+            switchToTab(newTab.id)
+        }
+
+        menuBinding.menuItemHistory.setOnClickListener {
+            dialog.dismiss()
+            Toast.makeText(this, "Decentralized history is stored privately on device", Toast.LENGTH_SHORT).show()
+        }
+
+        menuBinding.menuItemBookmarks.setOnClickListener {
+            dialog.dismiss()
+            showBookmarksDialog()
+        }
+
+        menuBinding.menuItemDownloads.setOnClickListener {
+            dialog.dismiss()
+            openDownloadsFolder()
+        }
+
+        // Desktop Site Toggle
+        menuBinding.switchDesktopSite.isChecked = activeTab?.isDesktopMode == true
+        menuBinding.menuItemDesktopSite.setOnClickListener {
+            val newState = !(activeTab?.isDesktopMode ?: false)
+            menuBinding.switchDesktopSite.isChecked = newState
+            activeTab?.let { tab ->
+                tab.isDesktopMode = newState
+                (tab.webView as? NeoWebView)?.setDesktopMode(newState)
+                tab.webView?.reload()
+            }
+            dialog.dismiss()
+        }
+
+        menuBinding.menuItemFindInPage.setOnClickListener {
+            dialog.dismiss()
+            openFindInPage()
+        }
+
+        menuBinding.menuItemP2pDrop.setOnClickListener {
+            dialog.dismiss()
+            loadUrlOrDomain("share.neo")
+        }
+
+        menuBinding.menuItemClearCache.setOnClickListener {
+            dialog.dismiss()
+            wv?.clearCache(true)
+            CookieManager.getInstance().removeAllCookies(null)
+            CookieManager.getInstance().flush()
+            wv?.reload()
+            Toast.makeText(this, "Cache and cookies cleared", Toast.LENGTH_SHORT).show()
+        }
+
+        dialog.show()
+    }
+
     private fun showBookmarksDialog() {
         val dialog = BottomSheetDialog(this, R.style.Theme_NeoBrowser_BottomSheet)
         val sheetBinding = DialogBookmarksBinding.inflate(layoutInflater)
         dialog.setContentView(sheetBinding.root)
 
         sheetBinding.rvBookmarks.layoutManager = LinearLayoutManager(this)
+        val items = BookmarkManager.getAllBookmarks()
         sheetBinding.rvBookmarks.adapter = object : RecyclerView.Adapter<BookmarkViewHolder>() {
-            val items = BookmarkManager.defaultBookmarks
-
             override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookmarkViewHolder {
                 val v = LayoutInflater.from(parent.context).inflate(R.layout.item_bookmark, parent, false)
                 return BookmarkViewHolder(v)
@@ -411,6 +749,8 @@ class MainActivity : AppCompatActivity() {
         val sheetBinding = DialogTabsBinding.inflate(layoutInflater)
         dialog.setContentView(sheetBinding.root)
 
+        sheetBinding.tvTabsTitle.text = "Tabs (${tabManager.count})"
+
         sheetBinding.btnAddTab.setOnClickListener {
             dialog.dismiss()
             val newTab = tabManager.createTab("", "NeoSearch")
@@ -418,9 +758,10 @@ class MainActivity : AppCompatActivity() {
             switchToTab(newTab.id)
         }
 
-        sheetBinding.rvTabs.layoutManager = LinearLayoutManager(this)
-        sheetBinding.rvTabs.adapter = object : RecyclerView.Adapter<TabViewHolder>() {
-            val tabs = tabManager.getTabs()
+        sheetBinding.rvTabs.layoutManager = GridLayoutManager(this, 2)
+
+        val adapter = object : RecyclerView.Adapter<TabViewHolder>() {
+            val tabs = tabManager.getTabs().toMutableList()
 
             override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TabViewHolder {
                 val v = LayoutInflater.from(parent.context).inflate(R.layout.item_tab, parent, false)
@@ -429,62 +770,58 @@ class MainActivity : AppCompatActivity() {
 
             override fun onBindViewHolder(holder: TabViewHolder, position: Int) {
                 val tab = tabs[position]
-                holder.title.text = if (tab.title.isNotEmpty()) tab.title else "New Tab"
-                holder.url.text = if (tab.domain.isNotEmpty()) "fetch://${tab.domain}/" else "NeoSearch Portal"
-                holder.status.text = if (tab.id == tabManager.activeTabId) "• Active Tab" else "Background Tab"
-                holder.status.setTextColor(
-                    ContextCompat.getColor(
-                        this@MainActivity,
-                        if (tab.id == tabManager.activeTabId) R.color.primary_light else R.color.text_muted
-                    )
-                )
+                val isActive = tab.id == tabManager.activeTabId
 
-                holder.itemView.setOnClickListener {
+                holder.title.text = if (tab.title.isNotEmpty()) tab.title else "NeoSearch"
+                holder.url.text = when {
+                    tab.domain.isNotEmpty() -> "fetch://${tab.domain}/"
+                    tab.url.isNotEmpty() -> formatDisplayUrl(tab.url)
+                    else -> "NeoSearch Portal"
+                }
+
+                if (isActive) {
+                    holder.card.strokeColor = ContextCompat.getColor(this@MainActivity, R.color.accent_cyan)
+                    holder.card.strokeWidth = (2 * resources.displayMetrics.density).toInt()
+                    holder.status.text = "Active"
+                    holder.status.setTextColor(ContextCompat.getColor(this@MainActivity, R.color.accent_cyan))
+                } else {
+                    holder.card.strokeColor = ContextCompat.getColor(this@MainActivity, R.color.chrome_divider)
+                    holder.card.strokeWidth = (1 * resources.displayMetrics.density).toInt()
+                    holder.status.text = "Background"
+                    holder.status.setTextColor(ContextCompat.getColor(this@MainActivity, R.color.chrome_icon_muted))
+                }
+
+                holder.card.setOnClickListener {
                     dialog.dismiss()
                     switchToTab(tab.id)
                 }
 
                 holder.btnClose.setOnClickListener {
                     val nextActive = tabManager.closeTab(tab.id)
+                    tabs.removeAt(position)
                     notifyItemRemoved(position)
+                    notifyItemRangeChanged(position, tabs.size)
+                    binding.tabCountTop.text = tabManager.count.toString()
+                    sheetBinding.tvTabsTitle.text = "Tabs (${tabManager.count})"
                     if (nextActive != null) {
                         switchToTab(nextActive.id)
                     }
-                    if (tabManager.count == 1) dialog.dismiss()
+                    if (tabManager.count <= 1) {
+                        dialog.dismiss()
+                    }
                 }
             }
 
             override fun getItemCount() = tabs.size
         }
 
+        sheetBinding.rvTabs.adapter = adapter
         dialog.show()
     }
 
     private fun hideKeyboard() {
         val imm = getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager
         imm?.hideSoftInputFromWindow(binding.omniboxInput.windowToken, 0)
-    }
-
-    override fun onBackPressed() {
-        if (customView != null) {
-            binding.fullscreenCustomView.removeView(customView)
-            binding.fullscreenCustomView.isVisible = false
-            customViewCallback?.onCustomViewHidden()
-            customView = null
-            customViewCallback = null
-            return
-        }
-
-        val activeTab = tabManager.getActiveTab()
-        if (activeTab?.webView?.canGoBack() == true) {
-            activeTab.webView?.goBack()
-        } else if (tabManager.count > 1) {
-            val activeId = tabManager.activeTabId
-            val nextTab = tabManager.closeTab(activeId)
-            if (nextTab != null) switchToTab(nextTab.id)
-        } else {
-            super.onBackPressed()
-        }
     }
 
     class BookmarkViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -494,6 +831,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     class TabViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val card: MaterialCardView = view.findViewById(R.id.card_tab)
+        val favicon: ImageView = view.findViewById(R.id.tab_favicon)
         val title: TextView = view.findViewById(R.id.tab_title)
         val url: TextView = view.findViewById(R.id.tab_url)
         val status: TextView = view.findViewById(R.id.tab_status)

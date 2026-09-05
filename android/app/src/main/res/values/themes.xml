@@ -10,8 +10,8 @@
         <item name="colorOnSecondary">#000000</item>
 
         <!-- Status & Navigation Bars -->
-        <item name="android:statusBarColor">@color/bg_surface</item>
-        <item name="android:navigationBarColor">@color/bg_surface</item>
+        <item name="android:statusBarColor">@color/chrome_surface</item>
+        <item name="android:navigationBarColor">@color/chrome_surface</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
 

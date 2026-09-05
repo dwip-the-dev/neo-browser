@@ -3,47 +3,52 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/bg_surface"
+    android:background="@drawable/bg_bottom_sheet"
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- Handle Bar -->
+    <!-- Bottom Sheet Drag Handle -->
     <View
         android:layout_width="36dp"
         android:layout_height="4dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="12dp"
-        android:background="@drawable/bg_pill_accent" />
+        android:layout_marginBottom="14dp"
+        android:background="@drawable/bg_drag_handle" />
 
+    <!-- Tabs Header Row -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:paddingHorizontal="4dp">
 
         <TextView
+            android:id="@+id/tv_tabs_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text=" Open Tabs"
+            android:text="Tabs"
             android:textColor="@color/text_main"
-            android:textSize="16sp"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
         <Button
             android:id="@+id/btn_add_tab"
+            style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:backgroundTint="@color/primary"
-            android:paddingHorizontal="12dp"
-            android:text="+ New Tab"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp" />
+            android:layout_height="38dp"
+            android:backgroundTint="@color/chrome_surface_elevated"
+            android:text="+ New tab"
+            android:textColor="@color/accent_cyan"
+            android:textSize="13sp" />
     </LinearLayout>
 
+    <!-- Chrome 2-Column Tabs Grid -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_tabs"
         android:layout_width="match_parent"
-        android:layout_height="340dp"
-        android:layout_marginTop="12dp"
+        android:layout_height="400dp"
+        android:layout_marginTop="14dp"
+        android:clipToPadding="false"
         android:scrollbars="vertical" />
 </LinearLayout>

@@ -29,4 +29,16 @@
     <color name="ripple_light">#26FFFFFF</color>
     <color name="tab_active_bg">#252535</color>
     <color name="tab_inactive_bg">#14141C</color>
+
+    <!-- Chrome Mobile Dark Theme Tokens -->
+    <color name="chrome_bg">#121212</color>
+    <color name="chrome_surface">#1F1F1F</color>
+    <color name="chrome_surface_elevated">#28292A</color>
+    <color name="chrome_omnibox">#282A2D</color>
+    <color name="chrome_omnibox_stroke">#3C4043</color>
+    <color name="chrome_divider">#2E3134</color>
+    <color name="chrome_icon">#E3E3E3</color>
+    <color name="chrome_icon_muted">#9AA0A6</color>
+    <color name="chrome_accent">#38BDF8</color>
+    <color name="chrome_security_green">#34A853</color>
 </resources>
