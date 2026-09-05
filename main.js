@@ -506,7 +506,7 @@ async function loadServerURL() {
         const data = await res.json();
         if (!data.GLOBAL_SERVER_URL) throw new Error("Missing GLOBAL_SERVER_URL in JSON");
 
-        let candidate = data.GLOBAL_SERVER_URL;
+        let candidate = (data.GLOBAL_SERVER_URL || "").trim().replace(/\/+$/, '');
         try {
             const check = await fetch(`${candidate}/status`, { cache: "no-store" });
             if (check.ok) {
@@ -518,6 +518,9 @@ async function loadServerURL() {
         GLOBAL_SERVER_URL = VERCEL_BACKEND;
     } catch (err) {
         GLOBAL_SERVER_URL = VERCEL_BACKEND;
+    }
+    if (GLOBAL_SERVER_URL) {
+        GLOBAL_SERVER_URL = GLOBAL_SERVER_URL.replace(/\/+$/, '');
     }
     console.log("[OK] Active server URL:", GLOBAL_SERVER_URL);
 }
