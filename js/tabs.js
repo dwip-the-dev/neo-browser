@@ -26,6 +26,13 @@ function initTabs() {
         btnNewTab.addEventListener('click', () => createTab("", "NeoSearch"));
     }
 
+    // Listen for open-in-new-tab from main process (intercepts popups and window.open)
+    if (typeof ipcRenderer !== 'undefined') {
+        ipcRenderer.on('open-in-new-tab', (event, url) => {
+            if (url) openUrlInNewTab(url);
+        });
+    }
+
     // Bookmarks click
     document.querySelectorAll('.bm-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -228,11 +235,37 @@ function switchTab(tabId) {
     }
 }
 
+function openUrlInNewTab(rawUrl) {
+    if (!rawUrl) return;
+    let url = rawUrl.trim();
+
+    if (url.startsWith('/site/')) {
+        url = `fetch://${url.replace(/^\/site\//, '')}`;
+    } else if (url.includes('/site/')) {
+        const parts = url.split('/site/');
+        if (parts.length > 1) {
+            url = `fetch://${parts[1]}`;
+        }
+    }
+
+    if (url.startsWith('fetch://')) {
+        const rawPath = url.replace('fetch://', '').replace(/\/$/, '');
+        const domain = rawPath.split('/')[0].split('?')[0];
+        const title = REGISTRY[domain] ? REGISTRY[domain].name : domain;
+        createTab(url, title);
+    } else if (url.startsWith('http://') || url.startsWith('https://')) {
+        createTab(url, url);
+    } else {
+        createTab(`fetch://${url}`, url);
+    }
+}
+
 function navigateTab(tab, domain) {
     domain = domain.trim().toLowerCase().replace('fetch://', '').replace(/\/$/, '');
     tab.domain = domain;
     tab.url = `fetch://${domain}/`;
-    tab.title = REGISTRY[domain] ? REGISTRY[domain].name : domain;
+    const baseDomain = domain.split('/')[0].split('?')[0];
+    tab.title = REGISTRY[baseDomain] ? REGISTRY[baseDomain].name : (REGISTRY[domain] ? REGISTRY[domain].name : domain);
     currentLoadedDomain = domain;
 
     const baseUrl = (GLOBAL_SERVER_URL || "").replace(/\/+$/, '');
@@ -282,6 +315,12 @@ function navigateTab(tab, domain) {
                 const omniboxInput = document.getElementById('omnibox-input');
                 if (omniboxInput) omniboxInput.value = `${tab.domain}/`;
             }
+        });
+
+        // Intercept new window requests (window.open, target="_blank") to open in a tab instead
+        wv.addEventListener('new-window', (e) => {
+            e.preventDefault();
+            if (e.url) openUrlInNewTab(e.url);
         });
 
         webviewContainer.appendChild(wv);

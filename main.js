@@ -128,11 +128,15 @@ function startLocalServer() {
             // ===== P2P EPHEMERAL TRANSFER COORDINATOR ENDPOINTS =====
             const CLOUD_COORDINATOR = 'https://neobrowser-bcknd.vercel.app';
 
-            async function proxyCloudP2P(targetPath, method, bodyObj) {
+            async function proxyCloudP2P(targetPath, method, bodyObj, authHeader) {
                 try {
+                    const headers = { 'Content-Type': 'application/json' };
+                    if (authHeader) {
+                        headers['Authorization'] = authHeader;
+                    }
                     const opts = {
                         method: method || 'GET',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: headers,
                         cache: 'no-store'
                     };
                     if (bodyObj && (method === 'POST' || method === 'PUT')) {
@@ -412,7 +416,8 @@ function startLocalServer() {
                 if (req.method === 'POST' || req.method === 'PUT') {
                     body = await readJsonBody(req);
                 }
-                const handled = await proxyCloudP2P(pathname + search, req.method, body);
+                const authHeader = req.headers['authorization'] || '';
+                const handled = await proxyCloudP2P(pathname + search, req.method, body, authHeader);
                 if (!handled) {
                     res.writeHead(502, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ status: 'error', error: 'Backend unreachable' }));
@@ -431,16 +436,24 @@ function startLocalServer() {
                 try { reg = JSON.parse(fs.readFileSync(backendRegPath, 'utf8')); } catch {}
                 let filePath = null;
 
-                if (reg[domain] && reg[domain].path) {
-                    const baseDir = path.dirname(reg[domain].path);
-                    filePath = path.join(__dirname, '..', 'neobrowser-bcknd', baseDir, subPath);
+                if (domain === 'user.neo') {
+                    const filename = path.basename(subPath);
+                    const sitesRoot = path.join(__dirname, '..', 'neobrowser-bcknd');
+                    const userDir = path.join(sitesRoot, 'sites', 'official', 'user');
+                    if (filename && path.extname(filename)) {
+                        const candidateAsset = path.join(userDir, filename);
+                        if (fs.existsSync(candidateAsset) && fs.statSync(candidateAsset).isFile()) {
+                            filePath = candidateAsset;
+                        }
+                    }
+                    if (!filePath) {
+                        filePath = path.join(userDir, 'index.html');
+                    }
                 }
 
-                if (!filePath || !fs.existsSync(filePath)) {
-                    // Fallback for user.neo dynamic usernames (e.g. user.neo/alice)
-                    if (domain === 'user.neo' && !path.extname(subPath)) {
-                        filePath = path.join(__dirname, '..', 'neobrowser-bcknd', 'sites', 'official', 'user', 'index.html');
-                    }
+                if (!filePath && reg[domain] && reg[domain].path) {
+                    const baseDir = path.dirname(reg[domain].path);
+                    filePath = path.join(__dirname, '..', 'neobrowser-bcknd', baseDir, subPath);
                 }
 
                 if (!filePath || !fs.existsSync(filePath)) {
@@ -563,7 +576,21 @@ function createWindow() {
     mainWindow.loadFile('index.html');
     mainWindow.once('ready-to-show', () => mainWindow.show());
     mainWindow.on('closed', () => (mainWindow = null));
+
+    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+        mainWindow.webContents.send('open-in-new-tab', url);
+        return { action: 'deny' };
+    });
 }
+
+app.on('web-contents-created', (event, contents) => {
+    contents.setWindowOpenHandler(({ url }) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('open-in-new-tab', url);
+        }
+        return { action: 'deny' };
+    });
+});
 
 // ===== SERVER STATUS CHECK =====
 async function checkServerStatus() {
