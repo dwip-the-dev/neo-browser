@@ -38,7 +38,7 @@ const P2P_SESSIONS = new Map();
 function pruneExpiredP2PSessions() {
     const now = Date.now();
     for (const [id, sess] of P2P_SESSIONS.entries()) {
-        if (now - sess.last_heartbeat > 60000) {
+        if (now - sess.last_heartbeat > 1800000) { // 30 minutes
             P2P_SESSIONS.delete(id);
         }
     }
@@ -135,22 +135,24 @@ function startLocalServer() {
                 const sha256 = data.sha256 ?? data.fileHash ?? '';
                 const total_chunks = data.total_chunks ?? data.totalChunks ?? 1;
 
+                const existingId = (data.id || data.sessionId || '').trim().toUpperCase();
                 const rawId = crypto.randomBytes(4).toString('hex').toUpperCase();
-                const sessionId = `NEO-${rawId.substring(0, 4)}-${rawId.substring(4, 8)}`;
+                const sessionId = existingId || `NEO-${rawId.substring(0, 4)}-${rawId.substring(4, 8)}`;
 
-                P2P_SESSIONS.set(sessionId, {
+                const sess = P2P_SESSIONS.get(sessionId) || {
                     id: sessionId,
-                    filename,
-                    size,
-                    mime,
-                    sha256,
-                    total_chunks,
-                    created_at: Date.now(),
-                    last_heartbeat: Date.now(),
-                    uploader_online: true,
                     signals: new Map(),
-                    chunks: new Map()
-                });
+                    chunks: new Map(),
+                    created_at: Date.now()
+                };
+                sess.filename = filename;
+                sess.size = size;
+                sess.mime = mime;
+                sess.sha256 = sha256;
+                sess.total_chunks = total_chunks;
+                sess.last_heartbeat = Date.now();
+                sess.uploader_online = true;
+                P2P_SESSIONS.set(sessionId, sess);
 
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({
@@ -173,6 +175,23 @@ function startLocalServer() {
                     sess.uploader_online = true;
                     res.writeHead(200, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ status: 'ok', active: true, id: sid, sessionId: sid }));
+                } else if (data.filename && data.size !== undefined) {
+                    // Auto-revive session from heartbeat metadata
+                    P2P_SESSIONS.set(sid, {
+                        id: sid,
+                        filename: data.filename,
+                        size: data.size,
+                        mime: data.mime || 'application/octet-stream',
+                        sha256: data.sha256 || '',
+                        total_chunks: data.total_chunks || data.totalChunks || 1,
+                        created_at: Date.now(),
+                        last_heartbeat: Date.now(),
+                        uploader_online: true,
+                        signals: new Map(),
+                        chunks: new Map()
+                    });
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ status: 'ok', active: true, id: sid, sessionId: sid, restored: true }));
                 } else {
                     res.writeHead(404, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ status: 'error', active: false, message: 'Session expired or offline' }));
@@ -256,16 +275,26 @@ function startLocalServer() {
                 const sid = (data.id || data.sessionId || '').trim().toUpperCase();
                 const index = data.index;
                 const chunkData = data.data;
-                if (P2P_SESSIONS.has(sid)) {
-                    const sess = P2P_SESSIONS.get(sid);
-                    sess.last_heartbeat = Date.now();
-                    sess.chunks.set(String(index), { data: chunkData, ts: Date.now() });
-                    res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ status: 'ok', success: true }));
-                } else {
-                    res.writeHead(404, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ status: 'error', message: 'Session offline' }));
+                if (!P2P_SESSIONS.has(sid)) {
+                    P2P_SESSIONS.set(sid, {
+                        id: sid,
+                        filename: 'unnamed.bin',
+                        size: 0,
+                        mime: 'application/octet-stream',
+                        sha256: '',
+                        total_chunks: 1,
+                        created_at: Date.now(),
+                        last_heartbeat: Date.now(),
+                        uploader_online: true,
+                        signals: new Map(),
+                        chunks: new Map()
+                    });
                 }
+                const sess = P2P_SESSIONS.get(sid);
+                sess.last_heartbeat = Date.now();
+                sess.chunks.set(String(index), { data: chunkData, ts: Date.now() });
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ status: 'ok', success: true }));
                 return;
             }
 
