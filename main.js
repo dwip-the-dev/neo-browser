@@ -126,6 +126,28 @@ function startLocalServer() {
             }
 
             // ===== P2P EPHEMERAL TRANSFER COORDINATOR ENDPOINTS =====
+            const CLOUD_COORDINATOR = 'https://neobrowser-bcknd.vercel.app';
+
+            async function proxyCloudP2P(targetPath, method, bodyObj) {
+                try {
+                    const opts = {
+                        method: method || 'GET',
+                        headers: { 'Content-Type': 'application/json' },
+                        cache: 'no-store'
+                    };
+                    if (bodyObj && (method === 'POST' || method === 'PUT')) {
+                        opts.body = typeof bodyObj === 'string' ? bodyObj : JSON.stringify(bodyObj);
+                    }
+                    const cloudRes = await fetch(`${CLOUD_COORDINATOR}${targetPath}`, opts);
+                    const text = await cloudRes.text();
+                    res.writeHead(cloudRes.status, { 'Content-Type': 'application/json' });
+                    res.end(text);
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+
             if (pathname === '/api/p2p/register' && req.method === 'POST') {
                 pruneExpiredP2PSessions();
                 const data = await readJsonBody(req);
@@ -143,6 +165,8 @@ function startLocalServer() {
                     id: sessionId,
                     signals: new Map(),
                     chunks: new Map(),
+                    needed_chunks: [],
+                    downloader_seen: 0,
                     created_at: Date.now()
                 };
                 sess.filename = filename;
@@ -153,6 +177,20 @@ function startLocalServer() {
                 sess.last_heartbeat = Date.now();
                 sess.uploader_online = true;
                 P2P_SESSIONS.set(sessionId, sess);
+
+                // Also sync to cloud coordinator so remote peers can discover it
+                fetch(`${CLOUD_COORDINATOR}/api/p2p/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: sessionId,
+                        filename,
+                        size,
+                        mime,
+                        sha256,
+                        total_chunks
+                    })
+                }).catch(() => {});
 
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({
@@ -173,28 +211,24 @@ function startLocalServer() {
                     const sess = P2P_SESSIONS.get(sid);
                     sess.last_heartbeat = Date.now();
                     sess.uploader_online = true;
+                    const needed = sess.needed_chunks || [];
+                    const downloader_active = (Date.now() - (sess.downloader_seen || 0)) < 60000;
                     res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ status: 'ok', active: true, id: sid, sessionId: sid }));
-                } else if (data.filename && data.size !== undefined) {
-                    // Auto-revive session from heartbeat metadata
-                    P2P_SESSIONS.set(sid, {
+                    res.end(JSON.stringify({
+                        status: 'ok',
+                        active: true,
                         id: sid,
-                        filename: data.filename,
-                        size: data.size,
-                        mime: data.mime || 'application/octet-stream',
-                        sha256: data.sha256 || '',
-                        total_chunks: data.total_chunks || data.totalChunks || 1,
-                        created_at: Date.now(),
-                        last_heartbeat: Date.now(),
-                        uploader_online: true,
-                        signals: new Map(),
-                        chunks: new Map()
-                    });
-                    res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ status: 'ok', active: true, id: sid, sessionId: sid, restored: true }));
+                        sessionId: sid,
+                        needed_chunks: needed,
+                        downloader_active: downloader_active,
+                        has_downloader: downloader_active
+                    }));
                 } else {
-                    res.writeHead(404, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ status: 'error', active: false, message: 'Session expired or offline' }));
+                    const handled = await proxyCloudP2P('/api/p2p/heartbeat', 'POST', data);
+                    if (!handled) {
+                        res.writeHead(404, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ status: 'error', active: false, message: 'Session expired or offline' }));
+                    }
                 }
                 return;
             }
@@ -205,6 +239,7 @@ function startLocalServer() {
                 const sid = sessionMatch[1].trim().toUpperCase();
                 const sess = P2P_SESSIONS.get(sid);
                 if (sess) {
+                    sess.downloader_seen = Date.now();
                     res.writeHead(200, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({
                         status: 'ok',
@@ -222,12 +257,15 @@ function startLocalServer() {
                         }
                     }));
                 } else {
-                    res.writeHead(404, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({
-                        status: 'error',
-                        error: 'peer_offline',
-                        message: 'Uploader is offline or transfer session has vanished from the network.'
-                    }));
+                    const handled = await proxyCloudP2P(`/api/p2p/session/${sid}`, 'GET');
+                    if (!handled) {
+                        res.writeHead(404, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({
+                            status: 'error',
+                            error: 'peer_offline',
+                            message: 'Uploader is offline or transfer session has vanished from the network.'
+                        }));
+                    }
                 }
                 return;
             }
@@ -245,8 +283,11 @@ function startLocalServer() {
                     res.writeHead(200, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ status: 'ok', success: true }));
                 } else {
-                    res.writeHead(404, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ status: 'error', message: 'Session offline' }));
+                    const handled = await proxyCloudP2P('/api/p2p/signal', 'POST', data);
+                    if (!handled) {
+                        res.writeHead(404, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ status: 'error', message: 'Session offline' }));
+                    }
                 }
                 return;
             }
@@ -263,8 +304,11 @@ function startLocalServer() {
                     res.writeHead(200, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ status: 'ok', signals: list }));
                 } else {
-                    res.writeHead(404, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ status: 'error', error: 'peer_offline' }));
+                    const handled = await proxyCloudP2P(`/api/p2p/signal/${sid}?peer=${encodeURIComponent(peerId)}`, 'GET');
+                    if (!handled) {
+                        res.writeHead(404, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ status: 'error', error: 'peer_offline' }));
+                    }
                 }
                 return;
             }
@@ -287,12 +331,27 @@ function startLocalServer() {
                         last_heartbeat: Date.now(),
                         uploader_online: true,
                         signals: new Map(),
-                        chunks: new Map()
+                        chunks: new Map(),
+                        needed_chunks: [],
+                        downloader_seen: 0
                     });
                 }
                 const sess = P2P_SESSIONS.get(sid);
                 sess.last_heartbeat = Date.now();
                 sess.chunks.set(String(index), { data: chunkData, ts: Date.now() });
+
+                // Fulfill needed chunk
+                if (sess.needed_chunks) {
+                    sess.needed_chunks = sess.needed_chunks.filter(x => x !== index && x !== Number(index));
+                }
+
+                // Also relay chunk to cloud coordinator so remote downloaders can retrieve it
+                fetch(`${CLOUD_COORDINATOR}/api/p2p/chunk`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: sid, index, data: chunkData })
+                }).catch(() => {});
+
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ status: 'ok', success: true }));
                 return;
@@ -305,17 +364,27 @@ function startLocalServer() {
                 const index = chunkMatch[2];
                 if (P2P_SESSIONS.has(sid)) {
                     const sess = P2P_SESSIONS.get(sid);
+                    sess.downloader_seen = Date.now();
                     const chunkEntry = sess.chunks.get(String(index));
                     if (chunkEntry) {
                         res.writeHead(200, { 'Content-Type': 'application/json' });
                         res.end(JSON.stringify({ status: 'ok', success: true, index, data: chunkEntry.data }));
                     } else {
+                        // Mark needed chunk
+                        if (!sess.needed_chunks) sess.needed_chunks = [];
+                        const numIdx = Number(index);
+                        if (!sess.needed_chunks.includes(numIdx)) {
+                            sess.needed_chunks.push(numIdx);
+                        }
                         res.writeHead(202, { 'Content-Type': 'application/json' });
-                        res.end(JSON.stringify({ status: 'waiting', message: 'Chunk not ready in stream yet' }));
+                        res.end(JSON.stringify({ status: 'waiting', message: `Chunk ${index} requested from peer stream`, needed_chunks: sess.needed_chunks }));
                     }
                 } else {
-                    res.writeHead(404, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ status: 'error', message: 'Session offline' }));
+                    const handled = await proxyCloudP2P(`/api/p2p/chunk/${sid}/${index}`, 'GET');
+                    if (!handled) {
+                        res.writeHead(404, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ status: 'error', message: 'Session offline' }));
+                    }
                 }
                 return;
             }
@@ -326,6 +395,11 @@ function startLocalServer() {
                 if (P2P_SESSIONS.has(sid)) {
                     P2P_SESSIONS.delete(sid);
                 }
+                fetch(`${CLOUD_COORDINATOR}/api/p2p/unregister`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: sid })
+                }).catch(() => {});
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ status: 'ok', success: true, message: 'Session destroyed.' }));
                 return;
