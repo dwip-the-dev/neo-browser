@@ -9,6 +9,7 @@
 
     <!-- Accents -->
     <color name="primary">#8B5CF6</color>
+    <color name="primary_purple">#8B5CF6</color>
     <color name="primary_light">#C084FC</color>
     <color name="accent_cyan">#38BDF8</color>
     <color name="accent_emerald">#22C55E</color>

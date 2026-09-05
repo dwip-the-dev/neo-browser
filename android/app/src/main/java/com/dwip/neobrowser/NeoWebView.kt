@@ -24,6 +24,8 @@ class NeoWebView(context: Context) : WebView(context) {
             databaseEnabled = true
             allowFileAccess = true
             allowContentAccess = true
+            allowFileAccessFromFileURLs = true
+            allowUniversalAccessFromFileURLs = true
 
             // Multi-touch Zoom
             setSupportZoom(true)

@@ -3,7 +3,10 @@ package com.dwip.neobrowser
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.animation.ObjectAnimator
+import android.annotation.SuppressLint
 import android.graphics.Color
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -11,8 +14,12 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.KeyEvent
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
+import android.view.animation.OvershootInterpolator
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.webkit.CookieManager
@@ -59,6 +66,19 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val tabManager = TabManager()
 
+    // Ambient Focus Audio Player
+    private var ambientPlayer: MediaPlayer? = null
+    private var isAmbientPlaying = false
+    private var currentAmbientTrackIndex = 0
+
+    private val ambientTracks = listOf(
+        "audio/track1_tokyo_midnight_rain.mp3" to "Tokyo Midnight Rain",
+        "audio/track2_cyberpunk_neon_dreams.mp3" to "Cyberpunk Neon Dreams",
+        "audio/track3_autumn_coffee_vibes.mp3" to "Autumn Coffee Vibes",
+        "audio/track4_deep_cosmos_432hz.mp3" to "Deep Cosmos 432Hz",
+        "audio/track5_nostalgic_sunset_drive.mp3" to "Nostalgic Sunset Drive"
+    )
+
     // File Upload Handlers
     private var fileUploadCallback: ValueCallback<Array<Uri>>? = null
     private val fileChooserLauncher = registerForActivityResult(
@@ -100,6 +120,7 @@ class MainActivity : AppCompatActivity() {
         setupOmniboxAndToolbar()
         setupFindInPage()
         setupBottomBar()
+        SoundManager.init(this)
         initializeNetworkAndServer()
 
         // Create initial tab
@@ -206,13 +227,39 @@ class MainActivity : AppCompatActivity() {
             binding.btnClear.isVisible = hasFocus && binding.omniboxInput.text?.isNotEmpty() == true
             if (hasFocus) {
                 binding.omniboxInput.selectAll()
+                binding.omniboxContainer.animate()
+                    .scaleX(1.015f)
+                    .scaleY(1.015f)
+                    .setDuration(200)
+                    .setInterpolator(DecelerateInterpolator())
+                    .start()
+            } else {
+                binding.omniboxContainer.animate()
+                    .scaleX(1.0f)
+                    .scaleY(1.0f)
+                    .setDuration(180)
+                    .setInterpolator(DecelerateInterpolator())
+                    .start()
             }
         }
 
         binding.omniboxInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                binding.btnClear.isVisible = binding.omniboxInput.hasFocus() && !s.isNullOrEmpty()
+                val shouldShow = binding.omniboxInput.hasFocus() && !s.isNullOrEmpty()
+                if (binding.btnClear.isVisible != shouldShow) {
+                    if (shouldShow) {
+                        binding.btnClear.alpha = 0f
+                        binding.btnClear.scaleX = 0.5f
+                        binding.btnClear.scaleY = 0.5f
+                        binding.btnClear.isVisible = true
+                        binding.btnClear.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(160).start()
+                    } else {
+                        binding.btnClear.animate().alpha(0f).scaleX(0.5f).scaleY(0.5f).setDuration(120).withEndAction {
+                            binding.btnClear.isVisible = false
+                        }.start()
+                    }
+                }
             }
             override fun afterTextChanged(s: Editable?) {}
         })
@@ -230,6 +277,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnClear.setOnClickListener {
+            SoundManager.playClick()
             binding.omniboxInput.text?.clear()
             binding.btnClear.isVisible = false
             binding.omniboxInput.requestFocus()
@@ -238,10 +286,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnRefresh.setOnClickListener {
+            SoundManager.playClick()
+            binding.btnRefresh.animate().rotationBy(360f).setDuration(450).setInterpolator(DecelerateInterpolator()).start()
             tabManager.getActiveTab()?.webView?.reload()
         }
 
         binding.securityIcon.setOnClickListener {
+            SoundManager.playClick()
+            binding.securityIcon.animate().scaleX(1.3f).scaleY(1.3f).setDuration(120).withEndAction {
+                binding.securityIcon.animate().scaleX(1.0f).scaleY(1.0f).setDuration(140).setInterpolator(OvershootInterpolator(2f)).start()
+            }.start()
             val activeTab = tabManager.getActiveTab()
             val url = activeTab?.webView?.url ?: activeTab?.url ?: ""
             val isNeo = url.contains("/site/") || url.startsWith("fetch://") || url.contains(".neo")
@@ -257,18 +311,29 @@ class MainActivity : AppCompatActivity() {
 
         // Top Chrome Tab Box
         binding.btnTabsTop.setOnClickListener {
+            SoundManager.playClick()
+            binding.btnTabsTop.animate().scaleX(1.2f).scaleY(1.2f).setDuration(100).withEndAction {
+                binding.btnTabsTop.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start()
+            }.start()
             showTabsDialog()
         }
 
         // Top Chrome 3-Dots Menu
         binding.btnMoreMenu.setOnClickListener {
+            SoundManager.playClick()
+            binding.btnMoreMenu.animate().rotationBy(90f).setDuration(150).withEndAction {
+                binding.btnMoreMenu.rotation = 0f
+            }.start()
             showChromeMenuDialog()
         }
 
         // Error retry
         binding.btnRetry.setOnClickListener {
+            SoundManager.playClick()
             binding.errorOverlay.isVisible = false
-            tabManager.getActiveTab()?.webView?.reload()
+            tabManager.getActiveTab()?.let { tab ->
+                if (tab.url.isNotEmpty()) loadUrlOrDomain(tab.url)
+            }
         }
     }
 
@@ -324,7 +389,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupBottomBar() {
+        val bottomButtons = listOf(
+            binding.btnBack, binding.btnForward, binding.btnHome,
+            binding.btnBookmarks, binding.btnShare
+        )
+        bottomButtons.forEach { it.applySpringTouchEffect() }
+
         binding.btnBack.setOnClickListener {
+            SoundManager.playClick()
             val activeTab = tabManager.getActiveTab()
             if (activeTab?.webView?.canGoBack() == true) {
                 activeTab.webView?.goBack()
@@ -332,6 +404,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnForward.setOnClickListener {
+            SoundManager.playClick()
             val activeTab = tabManager.getActiveTab()
             if (activeTab?.webView?.canGoForward() == true) {
                 activeTab.webView?.goForward()
@@ -339,10 +412,17 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnHome.setOnClickListener {
+            SoundManager.playClick()
+            binding.btnHome.animate().rotationBy(360f).setDuration(350).setInterpolator(DecelerateInterpolator()).start()
             loadNeoSearchHome()
         }
 
         binding.btnBookmarks.setOnClickListener {
+            SoundManager.playClick()
+            binding.btnBookmarks.animate().scaleX(1.35f).scaleY(1.35f).setDuration(140).withEndAction {
+                binding.btnBookmarks.animate().scaleX(1.0f).scaleY(1.0f).setDuration(140)
+                    .setInterpolator(OvershootInterpolator(2.5f)).start()
+            }.start()
             val activeTab = tabManager.getActiveTab()
             val url = activeTab?.webView?.url ?: activeTab?.url ?: ""
             val title = activeTab?.title ?: "Neo Site"
@@ -357,12 +437,33 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnBookmarks.setOnLongClickListener {
+            SoundManager.playClick()
             showBookmarksDialog()
             true
         }
 
         binding.btnShare.setOnClickListener {
+            SoundManager.playClick()
+            binding.btnShare.animate().scaleX(1.25f).scaleY(1.25f).setDuration(120).withEndAction {
+                binding.btnShare.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start()
+            }.start()
             shareCurrentPage()
+        }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun View.applySpringTouchEffect() {
+        setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    v.animate().scaleX(0.86f).scaleY(0.86f).setDuration(80).start()
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(160)
+                        .setInterpolator(OvershootInterpolator(2.5f)).start()
+                }
+            }
+            false
         }
     }
 
@@ -379,12 +480,21 @@ class MainActivity : AppCompatActivity() {
 
         webView.webViewClient = NeoClient(
             onPageStartedCallback = { url ->
+                binding.loadingBar.alpha = 1f
                 binding.loadingBar.isVisible = true
                 binding.errorOverlay.isVisible = false
                 updateOmniboxForUrl(url)
             },
             onPageFinishedCallback = { url ->
-                binding.loadingBar.isVisible = false
+                SoundManager.playSuccess()
+                binding.loadingBar.animate()
+                    .alpha(0f)
+                    .setDuration(220)
+                    .withEndAction {
+                        binding.loadingBar.isVisible = false
+                        binding.loadingBar.progress = 0
+                    }
+                    .start()
                 updateOmniboxForUrl(url)
                 updateNavigationButtons()
             },
@@ -397,8 +507,16 @@ class MainActivity : AppCompatActivity() {
 
         webView.webChromeClient = NeoChromeClient(
             onProgressUpdate = { progress ->
-                binding.loadingBar.progress = progress
-                binding.loadingBar.isVisible = progress in 1..99
+                if (progress in 1..99) {
+                    if (!binding.loadingBar.isVisible) {
+                        binding.loadingBar.alpha = 1f
+                        binding.loadingBar.isVisible = true
+                    }
+                    val anim = ObjectAnimator.ofInt(binding.loadingBar, "progress", binding.loadingBar.progress, progress)
+                    anim.duration = 150
+                    anim.interpolator = DecelerateInterpolator()
+                    anim.start()
+                }
             },
             onTitleReceived = { title ->
                 tab.title = title
@@ -428,6 +546,27 @@ class MainActivity : AppCompatActivity() {
             }
         )
 
+        // Fluid hide/show of bottom navigation bar on scroll
+        var isBottomBarVisible = true
+        webView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
+            val delta = scrollY - oldScrollY
+            if (delta > 20 && isBottomBarVisible && scrollY > 90) {
+                isBottomBarVisible = false
+                binding.bottomBar.animate()
+                    .translationY(binding.bottomBar.height.toFloat() + 30f)
+                    .setDuration(200)
+                    .setInterpolator(AccelerateInterpolator())
+                    .start()
+            } else if (delta < -20 && !isBottomBarVisible) {
+                isBottomBarVisible = true
+                binding.bottomBar.animate()
+                    .translationY(0f)
+                    .setDuration(200)
+                    .setInterpolator(DecelerateInterpolator())
+                    .start()
+            }
+        }
+
         // File download listener
         webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, _ ->
             val fileName = URLUtil.guessFileName(url, contentDisposition, mimetype)
@@ -441,9 +580,20 @@ class MainActivity : AppCompatActivity() {
     private fun switchToTab(tabId: Int) {
         val tab = tabManager.switchTab(tabId) ?: return
 
-        // Hide other webviews, show this one
+        // Smooth fade-scale transition between webviews
         for (t in tabManager.getTabs()) {
-            t.webView?.isVisible = (t.id == tab.id)
+            if (t.id == tab.id) {
+                t.webView?.let { v ->
+                    v.alpha = 0f
+                    v.scaleX = 0.985f
+                    v.scaleY = 0.985f
+                    v.isVisible = true
+                    v.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(160)
+                        .setInterpolator(DecelerateInterpolator()).start()
+                }
+            } else {
+                t.webView?.isVisible = false
+            }
         }
 
         binding.tabCountTop.text = tabManager.count.toString()
@@ -659,6 +809,7 @@ class MainActivity : AppCompatActivity() {
         // Menu Items
         menuBinding.menuItemNewTab.setOnClickListener {
             dialog.dismiss()
+            SoundManager.playTabNew()
             val newTab = tabManager.createTab("", "NeoSearch")
             setupTabWebView(newTab)
             switchToTab(newTab.id)
@@ -700,6 +851,11 @@ class MainActivity : AppCompatActivity() {
         menuBinding.menuItemP2pDrop.setOnClickListener {
             dialog.dismiss()
             loadUrlOrDomain("share.neo")
+        }
+
+        menuBinding.menuItemFocusAudio.setOnClickListener {
+            dialog.dismiss()
+            toggleAmbientAudio()
         }
 
         menuBinding.menuItemClearCache.setOnClickListener {
@@ -753,6 +909,7 @@ class MainActivity : AppCompatActivity() {
 
         sheetBinding.btnAddTab.setOnClickListener {
             dialog.dismiss()
+            SoundManager.playTabNew()
             val newTab = tabManager.createTab("", "NeoSearch")
             setupTabWebView(newTab)
             switchToTab(newTab.id)
@@ -791,24 +948,40 @@ class MainActivity : AppCompatActivity() {
                     holder.status.setTextColor(ContextCompat.getColor(this@MainActivity, R.color.chrome_icon_muted))
                 }
 
+                // Staggered card entrance animation
+                holder.card.alpha = 0f
+                holder.card.scaleX = 0.92f
+                holder.card.scaleY = 0.92f
+                holder.card.animate().alpha(1f).scaleX(1f).scaleY(1f)
+                    .setDuration(200)
+                    .setStartDelay((position * 35L).coerceAtMost(250L))
+                    .setInterpolator(DecelerateInterpolator())
+                    .start()
+
                 holder.card.setOnClickListener {
-                    dialog.dismiss()
-                    switchToTab(tab.id)
+                    SoundManager.playClick()
+                    holder.card.animate().scaleX(0.92f).scaleY(0.92f).setDuration(80).withEndAction {
+                        dialog.dismiss()
+                        switchToTab(tab.id)
+                    }.start()
                 }
 
                 holder.btnClose.setOnClickListener {
-                    val nextActive = tabManager.closeTab(tab.id)
-                    tabs.removeAt(position)
-                    notifyItemRemoved(position)
-                    notifyItemRangeChanged(position, tabs.size)
-                    binding.tabCountTop.text = tabManager.count.toString()
-                    sheetBinding.tvTabsTitle.text = "Tabs (${tabManager.count})"
-                    if (nextActive != null) {
-                        switchToTab(nextActive.id)
-                    }
-                    if (tabManager.count <= 1) {
-                        dialog.dismiss()
-                    }
+                    SoundManager.playClick()
+                    holder.card.animate().alpha(0f).translationX(holder.card.width.toFloat()).setDuration(160).withEndAction {
+                        val nextActive = tabManager.closeTab(tab.id)
+                        tabs.removeAt(position)
+                        notifyItemRemoved(position)
+                        notifyItemRangeChanged(position, tabs.size)
+                        binding.tabCountTop.text = tabManager.count.toString()
+                        sheetBinding.tvTabsTitle.text = "Tabs (${tabManager.count})"
+                        if (nextActive != null) {
+                            switchToTab(nextActive.id)
+                        }
+                        if (tabManager.count <= 1) {
+                            dialog.dismiss()
+                        }
+                    }.start()
                 }
             }
 
@@ -817,6 +990,39 @@ class MainActivity : AppCompatActivity() {
 
         sheetBinding.rvTabs.adapter = adapter
         dialog.show()
+    }
+
+    private fun toggleAmbientAudio() {
+        if (isAmbientPlaying) {
+            ambientPlayer?.stop()
+            ambientPlayer?.release()
+            ambientPlayer = null
+            isAmbientPlaying = false
+            Toast.makeText(this, "Ambient soundscapes paused", Toast.LENGTH_SHORT).show()
+        } else {
+            try {
+                val (path, name) = ambientTracks[currentAmbientTrackIndex]
+                val afd = assets.openFd(path)
+                ambientPlayer = MediaPlayer().apply {
+                    setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                    afd.close()
+                    isLooping = true
+                    prepare()
+                    start()
+                }
+                isAmbientPlaying = true
+                Toast.makeText(this, "Playing: $name (Offline HD)", Toast.LENGTH_SHORT).show()
+                currentAmbientTrackIndex = (currentAmbientTrackIndex + 1) % ambientTracks.size
+            } catch (e: Exception) {
+                Toast.makeText(this, "Ambient audio error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        ambientPlayer?.release()
+        ambientPlayer = null
     }
 
     private fun hideKeyboard() {

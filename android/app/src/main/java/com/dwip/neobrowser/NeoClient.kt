@@ -17,13 +17,14 @@ class NeoClient(
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
         val url = request?.url?.toString() ?: return false
 
-        // Only intercept custom fetch:// protocol scheme
+        // Intercept custom fetch:// protocol scheme
         if (url.startsWith("fetch://")) {
             val cleanDomain = url.removePrefix("fetch://").trim('/')
-            val target = "${com.dwip.neobrowser.network.ServerManager.globalServerUrl}/site/$cleanDomain/"
+            val target = com.dwip.neobrowser.network.ServerManager.resolveSiteUrl(cleanDomain)
             view?.loadUrl(target)
             return true
         }
+
         return false
     }
 

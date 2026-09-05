@@ -267,6 +267,35 @@
             android:textSize="15sp" />
     </LinearLayout>
 
+    <!-- Neo Focus Audio (Offline Lo-Fi) -->
+    <LinearLayout
+        android:id="@+id/menu_item_focus_audio"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="20dp">
+
+        <ImageView
+            android:id="@+id/menu_icon_focus_audio"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/ic_star_outline"
+            app:tint="@color/primary_purple" />
+
+        <TextView
+            android:id="@+id/menu_text_focus_audio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="Neo Ambient Soundscapes"
+            android:textColor="@color/primary_purple"
+            android:textSize="15sp" />
+    </LinearLayout>
+
     <!-- Clear Browsing Data / Cache -->
     <LinearLayout
         android:id="@+id/menu_item_clear_cache"

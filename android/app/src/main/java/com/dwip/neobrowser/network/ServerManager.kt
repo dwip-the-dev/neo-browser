@@ -98,7 +98,7 @@ object ServerManager {
         false
     }
 
-    fun resolveSiteUrl(domain: String): String {
+    fun resolveSiteUrl(domain: String, context: Context? = null): String {
         val clean = domain.trim()
             .replace("fetch://", "")
             .replace("https://", "")
