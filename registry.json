@@ -194,5 +194,17 @@
   "notes-vault.neo": {
     "name": "NotesVault",
     "path": "sites/productivity/notes-vault/index.html"
+  },
+  "neochat.neo": {
+    "name": "NeoChat Messenger",
+    "path": "sites/social/neochat/index.html"
+  },
+  "chat.neo": {
+    "name": "NeoChat Messenger",
+    "path": "sites/social/neochat/index.html"
+  },
+  "user.neo": {
+    "name": "Neo User Identity",
+    "path": "sites/official/user/index.html"
   }
 }

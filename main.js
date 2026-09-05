@@ -405,6 +405,21 @@ function startLocalServer() {
                 return;
             }
 
+            // NeoChat & User.neo API proxy
+            if (pathname.startsWith('/api/chat/') || pathname.startsWith('/api/user/')) {
+                const search = parsedUrl.search || '';
+                let body = null;
+                if (req.method === 'POST' || req.method === 'PUT') {
+                    body = await readJsonBody(req);
+                }
+                const handled = await proxyCloudP2P(pathname + search, req.method, body);
+                if (!handled) {
+                    res.writeHead(502, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ status: 'error', error: 'Backend unreachable' }));
+                }
+                return;
+            }
+
             // Site files endpoint: /site/<domain>/...
             const siteMatch = pathname.match(/^\/site\/([^\/]+)(?:\/(.*))?$/);
             if (siteMatch) {
@@ -419,6 +434,13 @@ function startLocalServer() {
                 if (reg[domain] && reg[domain].path) {
                     const baseDir = path.dirname(reg[domain].path);
                     filePath = path.join(__dirname, '..', 'neobrowser-bcknd', baseDir, subPath);
+                }
+
+                if (!filePath || !fs.existsSync(filePath)) {
+                    // Fallback for user.neo dynamic usernames (e.g. user.neo/alice)
+                    if (domain === 'user.neo' && !path.extname(subPath)) {
+                        filePath = path.join(__dirname, '..', 'neobrowser-bcknd', 'sites', 'official', 'user', 'index.html');
+                    }
                 }
 
                 if (!filePath || !fs.existsSync(filePath)) {
